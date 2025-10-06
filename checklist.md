@@ -38,13 +38,13 @@
 ---
 
 ## Submission Checklist
-- [x] GitHub repository includes all team members
-- [x] Each member made at least one commit
-- [x] Demo video uploaded (≤ 5 min)
-- [x] UML class diagram (PDF)
-- [x] README file (with Admin credentials)
-- [x] APK file uploaded and named properly
-- [x] Database implemented (Bonus +5%)
+- [ ] GitHub repository includes all team members
+- [ ] Each member made at least one commit
+- [ ] Demo video uploaded (≤ 5 min)
+- [ ] UML class diagram (PDF)
+- [ ] README file (with Admin credentials)
+- [ ] APK file uploaded and named properly
+- [ ] Database implemented (Bonus +5%)
 
 ---
 
