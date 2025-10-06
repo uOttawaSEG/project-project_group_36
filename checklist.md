@@ -11,7 +11,7 @@
 Responsible for overall architecture, Firebase/SQLite integration, and final app assembly.
 
 **Worklist**
-- [ ] Initialize Android Studio project and Gradle configuration  
+- [x] Initialize Android Studio project and Gradle configuration  
 - [ ] Create base package structure (`activities`, `models`, `database`, `utils`)  
 - [ ] Design navigation: `LoginActivity → RegisterActivity → WelcomeActivity`  
 - [ ] Implement `User`, `Student`, `Tutor`, `Admin` data model classes  
