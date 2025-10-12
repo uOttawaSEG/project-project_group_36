@@ -5,10 +5,11 @@ import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import android.util.Log;
+
 import ca.otams.group36.activities.LoginActivity;
-import ca.otams.group36.activities.StudentRegistrationActivity;
+import ca.otams.group36.activities.RoleChooseActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         buttonRegister.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, StudentRegistrationActivity.class))
+                startActivity(new Intent(MainActivity.this, RoleChooseActivity.class))
         );
     }
 }

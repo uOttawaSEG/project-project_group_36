@@ -23,6 +23,10 @@
         </activity>
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.StudentRegistrationActivity" />
+        <activity android:name=".activities.WelcomeActivity" />
+        <activity android:name=".activities.RoleChooseActivity" />
+        <activity android:name=".activities.TutorRegistrationActivity" />
+
     </application>
 
 </manifest>
