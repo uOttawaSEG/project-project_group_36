@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">OTAMS</string>
+    <string name="welcome_message">Welcome to OTAMS</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="login_title">Login</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="register_title">Student Registration</string>
+    <string name="first_name_hint">First Name</string>
+    <string name="last_name_hint">Last Name</string>
+    <string name="program_hint">Program of Study</string>
 </resources>
