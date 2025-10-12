@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- 🟥 Fixed uOttawa Garnet Toolbar at Top -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#990033"
+        android:elevation="4dp"
+        app:title="OTAMS"
+        app:titleTextColor="#FFFFFF" />
+
+    <!-- 🧭 Main Content Below Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- Welcome Message -->
+        <TextView
+            android:id="@+id/textWelcome"
+            android:text="Welcome!"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="#990033"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Role -->
+        <TextView
+            android:id="@+id/textRole"
+            android:text="Role: Student"
+            android:textSize="22sp"
+            android:textColor="#222222"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/textSubtitle"
+            android:text="University of Ottawa"
+            android:textSize="18sp"
+            android:textColor="#555555"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+</LinearLayout>
