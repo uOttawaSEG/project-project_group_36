@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="@color/white">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/uottawa_red"
+        android:elevation="0dp"
+        android:paddingStart="4dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <TextView
+        android:id="@+id/textLoginTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/login_title"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="@color/uottawa_dark_red"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="24dp"
+        android:layout_gravity="center_horizontal" />
+
+    <EditText
+        android:id="@+id/editEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/email_hint"
+        android:inputType="textEmailAddress"
+        android:drawableStart="@android:drawable/ic_menu_send"
+        android:padding="12dp"
+        android:backgroundTint="@color/uottawa_red" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/password_hint"
+        android:inputType="textPassword"
+        android:drawableStart="@android:drawable/ic_lock_idle_lock"
+        android:padding="12dp"
+        android:backgroundTint="@color/uottawa_red"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_button"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/uottawa_red"
+        android:layout_marginTop="24dp"
+        android:padding="12dp"
+        android:textStyle="bold" />
+
+</LinearLayout>
