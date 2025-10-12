@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    tools:context=".activities.RoleChooseActivity">
+
+    <!-- Toolbar at the top -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#A6192E"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:elevation="4dp"
+        android:padding="10dp"
+        android:minHeight="?attr/actionBarSize" />
+
+    <!-- Main content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <TextView
+            android:id="@+id/textChooseRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Your Role"
+            android:textColor="#A6192E"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="40dp" />
+
+        <Button
+            android:id="@+id/buttonStudent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I am a Student"
+            android:textSize="18sp"
+            android:backgroundTint="#A6192E"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="20dp" />
+
+        <Button
+            android:id="@+id/buttonTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I am a Tutor"
+            android:textSize="18sp"
+            android:backgroundTint="#7F1325"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</LinearLayout>
