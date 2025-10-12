@@ -10,4 +10,18 @@
     <string name="first_name_hint">First Name</string>
     <string name="last_name_hint">Last Name</string>
     <string name="program_hint">Program of Study</string>
+    <!-- Toolbar titles -->
+    <string name="title_login">OTAMS Login</string>
+    <string name="title_welcome">OTAMS</string>
+
+    <!-- Welcome screen texts -->
+    <string name="role_label">Role: %1$s</string>  <!-- %1$s will be replaced by role -->
+
+    <!-- Menu -->
+    <string name="action_logout">Logout</string>
+
+    <!-- Optional error messages for login -->
+    <string name="err_user_not_found">User not found</string>
+    <string name="err_invalid_credentials">Invalid credentials</string>
+    <string name="err_login_failed">Login failed</string>
 </resources>
