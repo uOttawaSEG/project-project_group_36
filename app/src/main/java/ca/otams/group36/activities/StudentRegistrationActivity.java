@@ -4,10 +4,7 @@
  * University of Ottawa
  *
  * Description:
- * Handles the student registration process using Firebase Authentication and Firestore.
- * This activity allows students to create an account by entering personal details such as
- * first name, last name, email, password, and program of study. Upon successful registration,
- * the student's information is stored in the Firestore database and awaits administrator approval.
+ * Handles user registration and Firestore record creation.
  */
 
 package ca.otams.group36.activities;
@@ -16,11 +13,14 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +28,11 @@ import ca.otams.group36.R;
 
 public class StudentRegistrationActivity extends AppCompatActivity {
 
-    private EditText editFirstName, editLastName, editEmail, editPassword, editProgram;
+    private EditText editEmail, editPassword, editFirstName, editLastName, editPhone;
+    private Button buttonRegister;
+
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,64 +41,61 @@ public class StudentRegistrationActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setDisplayShowTitleEnabled(true);
-            getSupportActionBar().setTitle("OTAMS");
+            getSupportActionBar().setTitle("Register");
         }
 
-        editFirstName = findViewById(R.id.editFirstName);
-        editLastName = findViewById(R.id.editLastName);
+        FirebaseApp.initializeApp(this);
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // UI elements
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
-        editProgram = findViewById(R.id.editProgram);
-        Button buttonRegisterSubmit = findViewById(R.id.buttonRegister);
+        editFirstName = findViewById(R.id.editFirstName);
+        editLastName = findViewById(R.id.editLastName);
+        editPhone = findViewById(R.id.editPhone);
+        buttonRegister = findViewById(R.id.buttonRegister);
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        buttonRegisterSubmit.setOnClickListener(v -> {
-            String first = editFirstName.getText().toString().trim();
-            String last = editLastName.getText().toString().trim();
+        buttonRegister.setOnClickListener(view -> {
             String email = editEmail.getText().toString().trim();
             String pwd = editPassword.getText().toString().trim();
-            String program = editProgram.getText().toString().trim();
+            String firstName = editFirstName.getText().toString().trim();
+            String lastName = editLastName.getText().toString().trim();
+            String phone = editPhone.getText().toString().trim();
 
-            if (first.isEmpty() || last.isEmpty() || email.isEmpty() || pwd.isEmpty() || program.isEmpty()) {
-                Toast.makeText(this, "Please fill in all fields.", Toast.LENGTH_SHORT).show();
+            if (email.isEmpty() || pwd.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Create account
-            auth.createUserWithEmailAndPassword(email, pwd)
-                    .addOnSuccessListener(result -> {
-                        String uid = result.getUser().getUid();
+            String uid = String.format("%08d", new java.util.Random().nextInt(100000000));
 
-                        Map<String, Object> student = new HashMap<>();
-                        student.put("firstName", first);
-                        student.put("lastName", last);
-                        student.put("email", email);
-                        student.put("program", program);
+            Map<String, Object> user = new HashMap<>();
+            user.put("email", email);
+            user.put("password", pwd);
+            user.put("firstName", firstName);
+            user.put("lastName", lastName);
+            user.put("phone", phone);
+            // Newly registered users require admin approval
+            user.put("approved", false);
+            user.put("role", "Student");
 
-                        db.collection("students").document(uid).set(student)
-                                .addOnSuccessListener(aVoid ->
-                                        Toast.makeText(this, "Registration complete!", Toast.LENGTH_SHORT).show()
-                                )
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(this, "Database error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                                );
+            db.collection("users").document(uid)
+                    .set(user)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
+                        finish(); // go back to login
                     })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(this, "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                    );
+                    .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
         });
     }
 
     @Override
     public boolean onSupportNavigateUp() {
-        onBackPressed();
+        getOnBackPressedDispatcher().onBackPressed();
         return true;
     }
 }
