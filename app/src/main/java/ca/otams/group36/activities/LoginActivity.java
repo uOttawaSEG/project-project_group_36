@@ -59,7 +59,14 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin.setOnClickListener(view -> {
             String email = editEmail.getText().toString().trim();
             String password = editPassword.getText().toString().trim();
-
+            if(email.equals("admin@otams.ca") && password.equals("admin123")) {
+                Toast.makeText(this, "Admin login successful", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("role", "ADMIN");
+                startActivity(intent);
+                finish();
+                return;
+            }
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
