@@ -1,15 +1,52 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+# ---- OS 垃圾文件 ----
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+Thumbs.db
+
+# ---- IDE/项目文件 ----
+*.iml
+.idea/
+.gradle/
 local.properties
+out/
+
+# ---- Gradle/构建产物 ----
+/build/
+**/build/
+.cxx/
+.externalNativeBuild/
+captures/
+lint/
+**/intermediates/
+**/generated/
+
+# ---- NDK/本地构建 ----
+obj/
+
+# ---- 打包产物 ----
+*.apk
+*.ap_
+*.aab
+
+# ---- 日志/临时文件 ----
+*.log
+*.tmp
+
+# ---- 签名与密钥（务必不要提交仓库）----
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# ---- 依赖锁/缓存（按需保留）----
+# 如果你团队不打算锁定 Gradle 版本可忽略，下两行一般建议提交：gradle-wrapper.jar/gradle-wrapper.properties
+# gradle/wrapper/gradle-wrapper.properties
+# gradle/wrapper/gradle-wrapper.jar
+
+# ---- 可选：Firebase/地图等配置（按团队策略决定是否提交）----
+# 大多数团队会提交 google-services.json / google-services.plist（这些通常不是“秘密”），
+# 如果你不想提交，就取消注释下一行：
+# app/google-services.json
+
+# ---- Jetpack Compose 指标（如果启用过 compose metrics/reports）----
+**/compose-*/reports/
+**/compose-*/metrics/
