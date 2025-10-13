@@ -1,3 +1,9 @@
+/**
+ * OTAMS Project
+ * Author: Yufeng Zhong
+ * University of Ottawa
+
+ */
 package ca.otams.group36.activities;
 
 import android.os.Bundle;

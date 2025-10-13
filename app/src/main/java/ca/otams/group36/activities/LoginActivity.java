@@ -1,13 +1,13 @@
 /**
  * OTAMS Project
- * Author: (updated)
+ * Author: Lige Xiao
+ * University of Ottawa
  *
  * Description:
- * - Sign in with FirebaseAuth (email + password)
- * - Read Firestore profile at users/{uid}
- * - If profile is missing, auto-create it (admins via whitelist -> approved=true)
- * - Only allow navigation if approved == true
- * - Admins go to MainActivity; others go to WelcomeActivity
+ * - If credentials match the hard-coded Admin (Admin.authenticate), route directly to Admin UI.
+ * - Otherwise, sign in with FirebaseAuth (email + password).
+ * - After non-admin sign-in, read or create Firestore profile at users/{uid}.
+ * - Only allow access when approved == true.
  */
 
 package ca.otams.group36.activities;
@@ -29,59 +29,53 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import ca.otams.group36.MainActivity;
 import ca.otams.group36.R;
+import ca.otams.group36.models.Admin;
 
 public class LoginActivity extends AppCompatActivity {
 
-    // UI refs (IDs must match your activity_login.xml)
+    // UI
     private EditText editEmail, editPassword;
     private Button buttonLogin;
 
-    // Firebase
+    // Firebase (used for non-admin users)
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    // Admin email whitelist: add all admin emails here
-    private static final Set<String> ADMIN_WHITELIST = new HashSet<>(
-            Arrays.asList("admin@otams.ca")
-    );
+    // Hard-coded admin model (email/password are defined in Admin class)
+    private final Admin admin = new Admin();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Toolbar (kept simple to avoid resource mismatches)
+        // Toolbar title kept simple to avoid resource dependency issues
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("OTAMS Login");
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().setTitle("OTAMS Login");
 
         // Bind UI
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
         buttonLogin = findViewById(R.id.buttonLogin);
 
-        // Firebase init
+        // Firebase init (safe to call; no-op if already initialized)
         FirebaseApp.initializeApp(this);
         auth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
 
-        // Click: attempt login
+        // Login click
         buttonLogin.setOnClickListener(v -> attemptLogin());
     }
 
     /**
-     * Validate inputs, then sign in via FirebaseAuth.
-     * On success, fetch or create the Firestore profile and route by role.
+     * Validates inputs, tries Admin.authenticate first.
+     * If not admin, signs in with FirebaseAuth and handles Firestore profile.
      */
     private void attemptLogin() {
         String email = safe(editEmail);
@@ -99,17 +93,28 @@ public class LoginActivity extends AppCompatActivity {
 
         setUiEnabled(false);
 
-        // 1) Sign in with FirebaseAuth (never compare plaintext passwords in Firestore)
+        // 1) Admin hard-coded login first (no Firebase involved)
+        if (admin.authenticate(email, pwd)) {
+            Toast.makeText(this, "Admin login successful.", Toast.LENGTH_SHORT).show();
+
+            // Directly navigate to Admin UI; adjust destination if needed
+            Intent it = new Intent(this, MainActivity.class);
+            it.putExtra("role", "Admin");
+            startActivity(it);
+            finish();
+            return;
+        }
+
+        // 2) Non-admin login: FirebaseAuth
         auth.signInWithEmailAndPassword(email, pwd)
                 .addOnSuccessListener(result -> {
                     String uid = result.getUser().getUid();
                     String authedEmail = result.getUser().getEmail() != null
-                            ? result.getUser().getEmail()
-                            : email;
+                            ? result.getUser().getEmail() : email;
 
-                    // 2) Read Firestore profile at users/{uid}
+                    // 2a) Read Firestore user profile
                     db.collection("users").document(uid).get()
-                            .addOnSuccessListener(doc -> handleProfileOrBootstrap(uid, authedEmail, doc))
+                            .addOnSuccessListener(doc -> handleProfileOrCreate(uid, authedEmail, doc))
                             .addOnFailureListener(e -> {
                                 Toast.makeText(this, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
                                 setUiEnabled(true);
@@ -128,22 +133,21 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * If profile exists, proceed. If missing, auto-create users/{uid}.
-     * Admin emails (in whitelist) are auto-approved.
+     * If profile exists, proceed. If missing, create a minimal profile and require approval.
+     * Admin path never reaches here (already handled above).
      */
-    private void handleProfileOrBootstrap(String uid, String email, DocumentSnapshot doc) {
+    private void handleProfileOrCreate(String uid, String email, DocumentSnapshot doc) {
         if (!doc.exists()) {
-            boolean isAdmin = ADMIN_WHITELIST.contains(email.toLowerCase());
-
+            // Create minimal profile for new non-admin user; requires admin approval.
             Map<String, Object> profile = new HashMap<>();
             profile.put("email", email);
-            profile.put("firstName", isAdmin ? "Admin" : "User");
+            profile.put("firstName", "User");
             profile.put("lastName", "");
-            profile.put("role", isAdmin ? "Admin" : "Student"); // Non-admin defaults to Student
-            profile.put("approved", isAdmin);                    // Admins are auto-approved; others require approval
+            profile.put("role", "Student");   // Default role for regular users
+            profile.put("approved", false);   // Must be flipped by an admin
 
             db.collection("users").document(uid).set(profile)
-                    .addOnSuccessListener(aVoid -> proceedWithProfile(uid, profile))
+                    .addOnSuccessListener(aVoid -> proceedWithProfile(profile))
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         setUiEnabled(true);
@@ -151,13 +155,14 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        proceedWithProfile(uid, doc.getData());
+        proceedWithProfile(doc.getData());
     }
 
     /**
-     * Gate access by approval, then route by role.
+     * Gate by approval and route to destination.
+     * Non-admins must have approved == true; otherwise block and sign out.
      */
-    private void proceedWithProfile(String uid, Map<String, Object> profile) {
+    private void proceedWithProfile(Map<String, Object> profile) {
         if (profile == null) {
             Toast.makeText(this, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
             setUiEnabled(true);
@@ -177,12 +182,18 @@ public class LoginActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Login successful.", Toast.LENGTH_SHORT).show();
 
-        // Route by role (adjust destinations to your app structure)
-        if ("Admin".equalsIgnoreCase(role)) {
-            Intent it = new Intent(this, MainActivity.class);  // Replace with AdminDashboardActivity if you have one
-            it.putExtra("role", "Admin");
+        // Route by role (adjust if you have specific dashboards)
+        if ("Tutor".equalsIgnoreCase(role)) {
+            // Example: go to a Tutor home if you have one
+            // Intent it = new Intent(this, TutorHomeActivity.class);
+            // startActivity(it);
+            // For now, fall back to WelcomeActivity:
+            Intent it = new Intent(this, WelcomeActivity.class);
+            it.putExtra("name", firstName);
+            it.putExtra("role", "Tutor");
             startActivity(it);
         } else {
+            // Default route for Students (and any other roles)
             Intent it = new Intent(this, WelcomeActivity.class);
             it.putExtra("name", firstName);
             it.putExtra("role", role != null ? role : "Student");
@@ -191,26 +202,24 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Enable/disable inputs while network operations are in progress.
-     */
+    /** Enable/disable inputs during network operations to avoid duplicate actions. */
     private void setUiEnabled(boolean enabled) {
         buttonLogin.setEnabled(enabled);
         editEmail.setEnabled(enabled);
         editPassword.setEnabled(enabled);
     }
 
-    /** Safe string from EditText (trimmed) */
+    /** Safely read trimmed string from EditText. */
     private static String safe(EditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
 
-    /** Safe boolean cast */
+    /** Safe Boolean cast. */
     private static Boolean asBool(Object o) {
         return (o instanceof Boolean) ? (Boolean) o : null;
     }
 
-    /** Safe string cast */
+    /** Safe String cast. */
     private static String asString(Object o) {
         return o == null ? null : String.valueOf(o);
     }

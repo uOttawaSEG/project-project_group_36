@@ -1,6 +1,6 @@
 /**
  * OTAMS Project
- * Author: Tianqi Jiang
+ * Author: Lige Xiao
  * University of Ottawa
  *
  * Description:
