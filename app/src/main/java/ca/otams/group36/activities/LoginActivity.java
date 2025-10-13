@@ -1,129 +1,217 @@
 /**
  * OTAMS Project
- * Author: Tianqi Jiang
- * University of Ottawa
+ * Author: (updated)
  *
  * Description:
- * Handles user login with Firestore (custom user collection).
+ * - Sign in with FirebaseAuth (email + password)
+ * - Read Firestore profile at users/{uid}
+ * - If profile is missing, auto-create it (admins via whitelist -> approved=true)
+ * - Only allow navigation if approved == true
+ * - Admins go to MainActivity; others go to WelcomeActivity
  */
 
 package ca.otams.group36.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import ca.otams.group36.MainActivity;
 import ca.otams.group36.R;
 
 public class LoginActivity extends AppCompatActivity {
 
+    // UI refs (IDs must match your activity_login.xml)
     private EditText editEmail, editPassword;
     private Button buttonLogin;
+
+    // Firebase
+    private FirebaseAuth auth;
     private FirebaseFirestore db;
+
+    // Admin email whitelist: add all admin emails here
+    private static final Set<String> ADMIN_WHITELIST = new HashSet<>(
+            Arrays.asList("admin@otams.ca")
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Setup toolbar
+        // Toolbar (kept simple to avoid resource mismatches)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("OTAMS");
+            getSupportActionBar().setTitle("OTAMS Login");
         }
 
-        // UI references
+        // Bind UI
         editEmail = findViewById(R.id.editEmail);
         editPassword = findViewById(R.id.editPassword);
         buttonLogin = findViewById(R.id.buttonLogin);
 
-        // Initialize Firebase Firestore
+        // Firebase init
         FirebaseApp.initializeApp(this);
-        db = FirebaseFirestore.getInstance();
-        Log.i("FirestoreTest", "Firestore initialized successfully");
+        auth = FirebaseAuth.getInstance();
+        db   = FirebaseFirestore.getInstance();
 
-        buttonLogin.setOnClickListener(view -> {
-            String email = editEmail.getText().toString().trim();
-            String password = editPassword.getText().toString().trim();
-            if(email.equals("admin@otams.ca") && password.equals("admin123")) {
-                Toast.makeText(this, "Admin login successful", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("role", "ADMIN");
-                startActivity(intent);
-                finish();
-                return;
-            }
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            authenticateUser(email, password);
-        });
+        // Click: attempt login
+        buttonLogin.setOnClickListener(v -> attemptLogin());
     }
 
     /**
-     * Checks user credentials against Firestore.
+     * Validate inputs, then sign in via FirebaseAuth.
+     * On success, fetch or create the Firestore profile and route by role.
      */
-    private void authenticateUser(String email, String password) {
-        db.collection("users")
-                .whereEqualTo("email", email)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (querySnapshot.isEmpty()) {
-                        Toast.makeText(this, "No account found for this email.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+    private void attemptLogin() {
+        String email = safe(editEmail);
+        String pwd   = safe(editPassword);
 
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String storedPassword = doc.getString("password");
-                        Boolean approved = doc.getBoolean("approved");
-                        String role = doc.getString("role");
-                        String firstName = doc.getString("firstName");
+        // Basic validation
+        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Please enter a valid email.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (pwd.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-                        if (storedPassword != null && storedPassword.equals(password)) {
-                            if (approved != null && approved) {
-                                Toast.makeText(this, "Welcome " + firstName + " (" + role + ")", Toast.LENGTH_LONG).show();
-                                Log.i("Login", "User logged in: " + email);
+        setUiEnabled(false);
 
-                                Intent intent = new Intent(this, WelcomeActivity.class);
-                                intent.putExtra("name", firstName);
-                                intent.putExtra("role", role);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                Toast.makeText(this, "Account pending approval", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+        // 1) Sign in with FirebaseAuth (never compare plaintext passwords in Firestore)
+        auth.signInWithEmailAndPassword(email, pwd)
+                .addOnSuccessListener(result -> {
+                    String uid = result.getUser().getUid();
+                    String authedEmail = result.getUser().getEmail() != null
+                            ? result.getUser().getEmail()
+                            : email;
+
+                    // 2) Read Firestore profile at users/{uid}
+                    db.collection("users").document(uid).get()
+                            .addOnSuccessListener(doc -> handleProfileOrBootstrap(uid, authedEmail, doc))
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                                setUiEnabled(true);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Login error", e);
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    if (e instanceof FirebaseAuthInvalidUserException) {
+                        Toast.makeText(this, "User not found.", Toast.LENGTH_LONG).show();
+                    } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                        Toast.makeText(this, "Invalid credentials.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                    }
+                    setUiEnabled(true);
                 });
-
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        getOnBackPressedDispatcher().onBackPressed();
-        return true;
+    /**
+     * If profile exists, proceed. If missing, auto-create users/{uid}.
+     * Admin emails (in whitelist) are auto-approved.
+     */
+    private void handleProfileOrBootstrap(String uid, String email, DocumentSnapshot doc) {
+        if (!doc.exists()) {
+            boolean isAdmin = ADMIN_WHITELIST.contains(email.toLowerCase());
+
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("email", email);
+            profile.put("firstName", isAdmin ? "Admin" : "User");
+            profile.put("lastName", "");
+            profile.put("role", isAdmin ? "Admin" : "Student"); // Non-admin defaults to Student
+            profile.put("approved", isAdmin);                    // Admins are auto-approved; others require approval
+
+            db.collection("users").document(uid).set(profile)
+                    .addOnSuccessListener(aVoid -> proceedWithProfile(uid, profile))
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        setUiEnabled(true);
+                    });
+            return;
+        }
+
+        proceedWithProfile(uid, doc.getData());
     }
 
+    /**
+     * Gate access by approval, then route by role.
+     */
+    private void proceedWithProfile(String uid, Map<String, Object> profile) {
+        if (profile == null) {
+            Toast.makeText(this, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+            setUiEnabled(true);
+            return;
+        }
+
+        Boolean approved = asBool(profile.get("approved"));
+        String role = asString(profile.get("role"));
+        String firstName = asString(profile.get("firstName"));
+
+        if (approved == null || !approved) {
+            Toast.makeText(this, "Your account is pending admin approval.", Toast.LENGTH_LONG).show();
+            FirebaseAuth.getInstance().signOut();
+            setUiEnabled(true);
+            return;
+        }
+
+        Toast.makeText(this, "Login successful.", Toast.LENGTH_SHORT).show();
+
+        // Route by role (adjust destinations to your app structure)
+        if ("Admin".equalsIgnoreCase(role)) {
+            Intent it = new Intent(this, MainActivity.class);  // Replace with AdminDashboardActivity if you have one
+            it.putExtra("role", "Admin");
+            startActivity(it);
+        } else {
+            Intent it = new Intent(this, WelcomeActivity.class);
+            it.putExtra("name", firstName);
+            it.putExtra("role", role != null ? role : "Student");
+            startActivity(it);
+        }
+        finish();
+    }
+
+    /**
+     * Enable/disable inputs while network operations are in progress.
+     */
+    private void setUiEnabled(boolean enabled) {
+        buttonLogin.setEnabled(enabled);
+        editEmail.setEnabled(enabled);
+        editPassword.setEnabled(enabled);
+    }
+
+    /** Safe string from EditText (trimmed) */
+    private static String safe(EditText et) {
+        return et.getText() == null ? "" : et.getText().toString().trim();
+    }
+
+    /** Safe boolean cast */
+    private static Boolean asBool(Object o) {
+        return (o instanceof Boolean) ? (Boolean) o : null;
+    }
+
+    /** Safe string cast */
+    private static String asString(Object o) {
+        return o == null ? null : String.valueOf(o);
+    }
 }

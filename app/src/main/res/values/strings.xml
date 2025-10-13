@@ -24,4 +24,33 @@
     <string name="err_user_not_found">User not found</string>
     <string name="err_invalid_credentials">Invalid credentials</string>
     <string name="err_login_failed">Login failed</string>
+    <!-- Registration common -->
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="phone_hint">Phone (optional)</string>
+    <string name="create_student_btn">Create student account</string>
+    <string name="create_tutor_btn">Create tutor account</string>
+
+    <!-- Tutor-specific -->
+    <string name="subjects_hint">Subjects (comma-separated)</string>
+    <string name="years_hint">Years of experience</string>
+    <string name="bio_hint">Short bio (optional)</string>
+    <string name="register_title_tutor">Tutor Registration</string>
+
+    <!-- Error messages for registration -->
+    <string name="err_required">This field is required</string>
+    <string name="err_invalid_email">Please enter a valid email</string>
+    <string name="err_password_short">Password must be at least 8 characters</string>
+    <string name="err_password_mismatch">Passwords do not match</string>
+    <string name="err_invalid_phone">Invalid phone number</string>
+    <string name="err_nonnegative_number">Please enter a valid non-negative number</string>
+    <string name="toast_created">Account created</string>
+    <string name="toast_create_failed">Could not create account</string>
+    <string name="toast_unexpected_error">Unexpected error</string>
+    
+    <string name="toast_not_approved">Your account is pending admin approval.</string>
+    <string name="toast_login_success">Login successful</string>
+
+    <!-- Login extras -->
+    <string name="dont_have_account">Don’t have an account?</string>
+    <string name="go_register">Register</string>
 </resources>
