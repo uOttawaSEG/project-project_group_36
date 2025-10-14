@@ -19,25 +19,27 @@
         app:title="@string/register_title_tutor"
         app:titleTextColor="@android:color/white" />
 
+    <!-- 关键：滚动条始终显示在左侧 -->
     <ScrollView
+        android:id="@+id/tutorScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarStyle="insideOverlay"
+        android:verticalScrollbarPosition="left">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="@dimen/otams_form_padding">
 
             <!-- Email -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmail"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
@@ -52,11 +54,7 @@
             <!-- Password -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPassword"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline"
+                style="@style/OtamsFormField"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -72,11 +70,7 @@
             <!-- Confirm Password -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilConfirmPassword"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline"
+                style="@style/OtamsFormField"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -92,11 +86,7 @@
             <!-- First Name -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilFirstName"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etFirstName"
@@ -110,11 +100,7 @@
             <!-- Last Name -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilLastName"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etLastName"
@@ -128,11 +114,7 @@
             <!-- Phone -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPhone"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPhone"
@@ -147,11 +129,7 @@
             <!-- Subjects -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSubjects"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline"
+                style="@style/OtamsFormField"
                 app:helperText="@string/subjects_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -166,11 +144,7 @@
             <!-- Years of experience -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilYears"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etYears"
@@ -184,11 +158,8 @@
             <!-- Short bio -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilBio"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:boxBackgroundMode="outline">
+                style="@style/OtamsFormField"
+                android:layout_marginBottom="@dimen/otams_section_gap">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBio"
@@ -205,6 +176,7 @@
                 android:id="@+id/btnRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/otams_field_spacing"
                 android:backgroundTint="#A6192E"
                 android:text="@string/create_tutor_btn"
                 android:textColor="@android:color/white" />
@@ -215,8 +187,8 @@
                 style="?android:attr/progressBarStyleLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/otams_field_spacing"
                 android:visibility="gone" />
 
         </LinearLayout>

@@ -46,11 +46,33 @@
     <string name="toast_created">Account created</string>
     <string name="toast_create_failed">Could not create account</string>
     <string name="toast_unexpected_error">Unexpected error</string>
-    
+
     <string name="toast_not_approved">Your account is pending admin approval.</string>
     <string name="toast_login_success">Login successful</string>
 
     <!-- Login extras -->
     <string name="dont_have_account">Don’t have an account?</string>
     <string name="go_register">Register</string>
+
+    <!-- ===================== Added below ===================== -->
+
+    <!-- 占位：固定 TextInputLayout 的错误/帮助区域高度，避免出现/消失时界面跳动 -->
+    <string name="helper_blank"> </string>
+
+    <!-- 通用提示：本地校验失败时的 Toast -->
+    <string name="please_fix_errors">Please fix the highlighted errors</string>
+
+    <!-- 欢迎页文案（可用于：Welcome! You are logged in as <role>） -->
+    <string name="welcome_logged_in_as">Welcome! You are logged in as %1$s</string>
+
+    <!-- 常见注册错误 -->
+    <string name="err_email_in_use">Email already in use</string>
+
+    <!-- 学生端如需“必填电话”的提示文案，可用这个（Tutor 仍用 phone_hint） -->
+    <string name="phone_hint_required">Phone</string>
+
+    <!-- 如果你想统一成 ≥6 位密码校验，可用这个 key（保留了原有 err_password_short=8） -->
+    <string name="err_password_min6">Password must be at least 6 characters</string>
+    <string name="log_out">Log Out</string>
+
 </resources>
