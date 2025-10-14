@@ -1,6 +1,6 @@
 /**
  * OTAMS Project
- * Author: Tianqi Jiang
+ * Author: Yufeng zhong
  * University of Ottawa
  *
  * Description:
