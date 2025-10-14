@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 统一占位：固定 TextInputLayout 的帮助/错误区域高度，避免抖动 -->
+    <string name="otams_helper_blank"> </string>
+
+    <!-- 统一边距（带前缀，彻底规避重复） -->
+    <dimen name="otams_form_padding">16dp</dimen>
+    <dimen name="otams_field_spacing">12dp</dimen>
+    <dimen name="otams_section_gap">20dp</dimen>
+
+    <!-- 复用样式：用于所有 TextInputLayout -->
+    <style name="OtamsFormField" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">@dimen/otams_field_spacing</item>
+        <item name="boxBackgroundMode">outline</item>
+
+        <!-- 提前占位一行，错误出现/消失不跳动 -->
+        <item name="errorEnabled">true</item>
+        <item name="helperTextEnabled">true</item>
+        <item name="helperText">@string/otams_helper_blank</item>
+    </style>
+</resources>

@@ -1,6 +1,6 @@
 /**
  * OTAMS Project
- * Author: Lige Xiao
+ * Author: Tianqi Jiang
  * University of Ottawa
  *
  * Description:
@@ -9,17 +9,20 @@
 
 package ca.otams.group36.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import android.widget.Button;
 
 import ca.otams.group36.R;
 
 public class WelcomeActivity extends AppCompatActivity {
 
     private TextView textWelcome, textRole, textSubtitle;
+    private Button buttonLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class WelcomeActivity extends AppCompatActivity {
         textWelcome = findViewById(R.id.textWelcome);
         textRole = findViewById(R.id.textRole);
         textSubtitle = findViewById(R.id.textSubtitle);
+        buttonLogout = findViewById(R.id.buttonLogout);
 
         String name = getIntent().getStringExtra("name");
         String role = getIntent().getStringExtra("role");
@@ -44,6 +48,11 @@ public class WelcomeActivity extends AppCompatActivity {
         textWelcome.setText("Welcome, " + name + "!");
         textRole.setText("Role: " + role);
         textSubtitle.setText("University of Ottawa");
+
+        buttonLogout.setOnClickListener(v ->
+                startActivity(new Intent(this, LoginActivity.class))
+        );
+
     }
 
     @Override

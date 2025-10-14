@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -16,7 +17,7 @@
         app:titleTextColor="#FFFFFF" />
 
     <!-- 🧭 Main Content Below Toolbar -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -24,39 +25,62 @@
         android:padding="32dp">
 
         <!-- Welcome Message -->
-        <TextView
-            android:id="@+id/textWelcome"
-            android:text="Welcome!"
-            android:textSize="36sp"
-            android:textStyle="bold"
-            android:textColor="#990033"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
         <!-- Role -->
-        <TextView
-            android:id="@+id/textRole"
-            android:text="Role: Student"
-            android:textSize="22sp"
-            android:textColor="#222222"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
         <!-- Subtitle -->
+
+        <TextView
+            android:id="@+id/textWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:text="Welcome!"
+            android:textColor="#990033"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:text="Role: Student"
+            android:textColor="#222222"
+            android:textSize="22sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textWelcome" />
+
         <TextView
             android:id="@+id/textSubtitle"
-            android:text="University of Ottawa"
-            android:textSize="18sp"
-            android:textColor="#555555"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
             android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:text="University of Ottawa"
+            android:textColor="#555555"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textRole" />
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/buttonLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/log_out"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textSubtitle" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
