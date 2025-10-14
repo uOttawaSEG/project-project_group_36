@@ -12,7 +12,16 @@
           "package_name": "ca.otams.group36"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "987304159715-q272mvlctk7b62tba2iet30l7ajalvpu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ca.otams.group36",
+            "certificate_hash": "026d67f4afdbfe2a3ebfbdf981f7b087d0797883"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC5I2y1ZVS04eFGNVbPzv6CZUJpLjxEWdw"
