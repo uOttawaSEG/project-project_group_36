@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.widget.Button;
 
+import ca.otams.group36.MainActivity;
 import ca.otams.group36.R;
 
 public class WelcomeActivity extends AppCompatActivity {
@@ -50,7 +51,7 @@ public class WelcomeActivity extends AppCompatActivity {
         textSubtitle.setText("University of Ottawa");
 
         buttonLogout.setOnClickListener(v ->
-                startActivity(new Intent(this, LoginActivity.class))
+                startActivity(new Intent(this, MainActivity.class))
         );
 
     }

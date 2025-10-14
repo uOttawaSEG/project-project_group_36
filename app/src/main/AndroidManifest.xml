@@ -25,8 +25,9 @@
         <activity android:name=".activities.StudentRegistrationActivity" />
         <activity android:name=".activities.WelcomeActivity" />
         <activity android:name=".activities.RoleChooseActivity" />
-        <activity android:name=".activities.TutorRegistrationActivity" />
-
+        <activity
+            android:name=".activities.TutorRegistrationActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
     </application>
 
 </manifest>
