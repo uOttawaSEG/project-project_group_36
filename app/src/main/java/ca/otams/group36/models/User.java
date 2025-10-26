@@ -10,25 +10,29 @@
 package ca.otams.group36.models;
 
 public class User {
+    private String id;
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
     protected String firstName;
     protected String lastName;
     protected String email;
     protected String password;
     protected String phone;
     protected String role;
-    protected boolean approved;
+    protected String status; // "pending", "approved", "rejected"
 
     public User() {}
 
     public User(String firstName, String lastName, String email,
-                String password, String phone, String role, boolean approved) {
+                String password, String phone, String role, String status) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.role = role;
-        this.approved = approved;
+        this.status = status;
     }
 
     public String getFirstName() { return firstName; }
@@ -49,6 +53,9 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public boolean isApproved() { return approved; }
-    public void setApproved(boolean approved) { this.approved = approved; }
+    public String getStatus() { return status; }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
