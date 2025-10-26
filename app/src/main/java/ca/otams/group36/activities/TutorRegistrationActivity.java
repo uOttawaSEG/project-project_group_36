@@ -97,7 +97,7 @@ public class TutorRegistrationActivity extends AppCompatActivity {
         user.put("subjects", subjects);
         user.put("years", years);
         user.put("bio", bio);
-        user.put("approved", false);
+        user.put("status", "pending");
         user.put("role", "Tutor");
 
         db.collection("users").document(uid)

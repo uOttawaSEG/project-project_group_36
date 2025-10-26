@@ -26,6 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import ca.otams.group36.R;
+import ca.otams.group36.models.Admin;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -77,48 +78,72 @@ public class LoginActivity extends AppCompatActivity {
      * Authenticate user via Firestore document query.
      */
     private void authenticateUser(String email, String password) {
+        if (email.equals(Admin.getUsername()) && Admin.authenticate(email, password)) {
+            Intent intent = new Intent(this, AdminHomeActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         db.collection("users")
                 .whereEqualTo("email", email)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
+
                     if (querySnapshot.isEmpty()) {
                         Toast.makeText(this, "No account found for this email.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
+
                         String storedPassword = doc.getString("password");
-                        Boolean approved = doc.getBoolean("approved");
+                        String status = doc.getString("status");
                         String role = doc.getString("role");
                         String firstName = doc.getString("firstName");
 
-                        if (storedPassword != null && storedPassword.equals(password)) {
-                            if (approved != null && approved) {
+                        if (storedPassword == null || !storedPassword.equals(password)) {
+                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        switch (status) {
+
+                            case "approved":
                                 Toast.makeText(this,
                                         "Welcome " + firstName + " (" + role + ")",
                                         Toast.LENGTH_LONG).show();
-
-                                Log.i("Login", "User logged in: " + email);
 
                                 Intent intent = new Intent(this, WelcomeActivity.class);
                                 intent.putExtra("name", firstName);
                                 intent.putExtra("role", role);
                                 startActivity(intent);
                                 finish();
-                            } else {
+                                break;
+
+                            case "pending":
                                 Toast.makeText(this,
-                                        "Account pending approval",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                                        "Your account is pending admin approval.",
+                                        Toast.LENGTH_LONG).show();
+                                break;
+
+                            case "rejected":
+                                Toast.makeText(this,
+                                        "Your registration was rejected.\nPlease contact admin at 613-000-0000.",
+                                        Toast.LENGTH_LONG).show();
+                                break;
+
+                            default:
+                                Toast.makeText(this,
+                                        "Account status unknown. Please contact support.",
+                                        Toast.LENGTH_LONG).show();
                         }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Login error", e);
                     Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+
     }
 
     /**

@@ -88,7 +88,7 @@ public class StudentRegistrationActivity extends AppCompatActivity {
         user.put("firstName", firstName);
         user.put("lastName", lastName);
         user.put("phone", phone);
-        user.put("approved", false);
+        user.put("status", "pending");
         user.put("role", "Student");
 
         db.collection("users").document(uid)
