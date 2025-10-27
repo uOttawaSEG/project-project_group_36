@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base theme for OTAMS -->
-    <style name="Theme.MyApplication" parent="Theme.MaterialComponents.DayNight.NoActionBar">        <item name="colorPrimary">@color/uottawa_red</item>
+    <style name="Theme.OTAMS" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimaryDark">@color/uottawa_dark_red</item>
         <item name="colorAccent">@color/uottawa_light_red</item>
         <item name="android:statusBarColor">@color/uottawa_dark_red</item>

@@ -20,7 +20,7 @@ public class Tutor extends User {
     public Tutor(String firstName, String lastName, String email,
                  String password, String phone, String highestDegree,
                  List<String> coursesOffered) {
-        super(firstName, lastName, email, password, phone, "Tutor", false);
+        super(firstName, lastName, email, password, phone, "Tutor", "pending");
         this.highestDegree = highestDegree;
         this.coursesOffered = coursesOffered;
     }

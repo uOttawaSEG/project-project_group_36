@@ -15,6 +15,6 @@ public class Student extends User {
 
     public Student(String firstName, String lastName, String email,
                    String password, String phone, String programOfStudy) {
-        super(firstName, lastName, email, password, phone, "Student", false);
+        super(firstName, lastName, email, password, phone, "Student", "pending");
     }
 }

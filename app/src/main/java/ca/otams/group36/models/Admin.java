@@ -11,11 +11,11 @@
 package ca.otams.group36.models;
 
 public class Admin {
-    private final String username = "admin@otams.ca";
+    private static final String username = "admin@otams.ca";
 
-    public String getUsername() { return username; }
+    public static String getUsername() { return username; }
 
-    public boolean authenticate(String email, String pwd) {
+    public static boolean authenticate(String email, String pwd) {
         String password = "admin123";
         return email.equals(username) && pwd.equals(password);
     }
