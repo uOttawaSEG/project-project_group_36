@@ -1,8 +1,10 @@
 package ca.otams.group36.activities;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,17 +33,17 @@ public class RejectedRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rejected_requests);
 
-        // Toolbar
+        // Toolbar setup
         setSupportActionBar(findViewById(R.id.toolbarRejected));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // UI Widgets
+        // Bind UI
         txtEmpty = findViewById(R.id.txtEmptyRejected);
         recycler = findViewById(R.id.recyclerRejected);
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        // List Adapter (no click action needed for rejected list)
-        adapter = new UsersAdapter(users, user -> {});
+        // When a rejected user is clicked → prompt deletion
+        adapter = new UsersAdapter(users, user -> showDeleteDialog(user));
         recycler.setAdapter(adapter);
     }
 
@@ -62,15 +64,48 @@ public class RejectedRequestsActivity extends AppCompatActivity {
                     }
                     adapter.notifyDataSetChanged();
 
-                    // Show or hide empty hint
                     txtEmpty.setVisibility(users.isEmpty() ? TextView.VISIBLE : TextView.GONE);
+                });
+    }
+
+    /**
+     * Confirm deletion dialog for rejected users.
+     */
+    private void showDeleteDialog(User user) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Account")
+                .setMessage("Are you sure you want to permanently delete " + user.getFirstName() + " " + user.getLastName() + "?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteUserFromFirestore(user))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
+     * Delete user record from Firestore.
+     */
+    private void deleteUserFromFirestore(User user) {
+        db.collection("users")
+                .whereEqualTo("email", user.getEmail())
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        String docId = query.getDocuments().get(0).getId();
+                        db.collection("users").document(docId)
+                                .delete()
+                                .addOnSuccessListener(x -> {
+                                    Toast.makeText(this, "Deleted: " + user.getEmail(), Toast.LENGTH_SHORT).show();
+                                    loadRejectedUsers(); // refresh list
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    }
                 });
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Return to Admin Home
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
