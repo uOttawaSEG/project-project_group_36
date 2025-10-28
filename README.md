@@ -1,108 +1,59 @@
-# OTAMS – Deliverable 1 
+# OTAMS – Deliverable 2  
 
-## Administrator Test Credentials
-- Email (username): <admin@otmas.com>
-- Password: <admin123>
+## 📱 Overview  
 
-> Use these credentials to sign in as **Administrator**.
+**OTAMS (Online Tutoring Assignment Management System)**  
+is an Android application designed to manage student and tutor registration with administrator approval and email verification.  
 
-## How to Verify 
-1) Install the attached APK (`Project_Group_1_debug.apk`).
-2) Login with the above **Administrator** credentials.
-3) Expected: Second screen shows  
-   `Welcome! You are logged in as Administrator`.
+Building on Deliverable 1, this version introduces:  
+- ✅ Email Verification (Firebase Auth)  
+- ✅ Admin Approval Workflow (Pending → Approved / Rejected)  
+- ✅ Separate Pending and Rejected Request Lists  
+- ✅ Firestore Database Integration  
+- ✅ Refined UI using uOttawa brand colours  
+- ✅ Automatic real-time list refresh and account deletion  
 
-## Build Info
-- Release tag: v0.1
-- Commit: <short-hash>
-- Android: <minSdk/targetSdk/AGP version if helpful>
+---
 
-## Team
-Tianqi Jiang – Project Lead (Setup, Integration & Database)
+## 🔐 Administrator Test Credentials  
 
-Responsible for overall architecture, Firebase/SQLite integration, and final app assembly.
-Worklist
+| Role | Email | Password |
+|------|--------|----------|
+| **Admin** | `admin@otams.ca` | `admin123` |
 
- Initialize Android Studio project and Gradle configuration
+> Use these credentials to log in as **Administrator**.  
+> Admin can approve or reject new registrations and permanently delete rejected accounts.
 
- Create base package structure ( activities , models , database , utils )
+---
 
- Design navigation: LoginActivity → RegisterActivity → WelcomeActivity
+## 🧭 How to Verify (Admin Flow)  
 
- Implement User , Student , Tutor , Admin data model classes
+1. **Install** the attached APK (`Project_Group_36_v0.2.apk`).  
+2. **Login** with the credentials above.  
+3. The **Admin Home Screen** shows three buttons:  
+   - “View Pending Requests”  
+   - “View Rejected Requests”  
+   - “Log Out”  
+4. Tap **View Pending Requests** → select a user → choose **Approve** or **Reject**.  
+   - Approved users can log in after verifying their email.  
+   - Rejected users appear under “Rejected Requests”.  
+5. In **Rejected Requests**, tapping a user and confirming deletion removes the account from Firestore permanently.  
+6. Returning to Admin Home automatically refreshes both lists.
 
- Set up Firebase Realtime Database connection (or SQLite fallback)
+---
 
- Implement CRUD operations for registration & login
+## 🧠 User Roles and Permissions  
 
- Seed Administrator credentials ( admin@otams.ca / admin123 )
+| Role | Permissions |
+|------|--------------|
+| **Admin** | Approve / Reject / Delete user accounts |
+| **Tutor** | Register with subjects (e.g., “Math, Physics”) → status = pending |
+| **Student** | Register with year / program → status = pending |
+| **All users** | Must verify email before login |
+| **Rejected** | Cannot log in; shown rejection message |
 
- Integrate UI and logic from other members
+---
 
- Conduct full functionality test (register → login → logout)
+## 🧩 System Architecture  
 
- Build final APK and create GitHub Release (v0.1)
-
-FuFeng Zhong – Registration Lead 
-
-Responsible for the design and logic of Student/Tutor registration screens.
-Worklist
-
- Create StudentRegistrationActivity layout (XML + Kotlin/Java)
-
- Create TutorRegistrationActivity layout (XML + Kotlin/Java)
-
-Add text input fields and buttons for all required attributes
-
- Implement input validation: empty fields, email format, password length
-
- Display user-friendly error messages for invalid inputs
-
- Connect registration data to database functions (provided by Tianqi)
-
-Test both Student and Tutor registration workflows
-
- Capture screenshots for README and demo video
-
-Lige Xiao – Authentication & Navigation Lead
-
-Responsible for login, logout, and role-based navigation.
-
-Worklist
-
- Implement LoginActivity with email/password fields
-
- Verify credentials using database query (Student, Tutor, Admin)
-
- Navigate to WelcomeActivity after successful login
-
- Display correct message: “Welcome! You are logged in as <role>”
-
-Add Logout button to clear session and return to login screen
-
- Handle error messages for incorrect credentials
-
- Perform cross-role testing (Student / Tutor / Admin accounts)
-
-Romy Wang – Documentation & Demo Lead
-
-Responsible for UML, README, and demo video preparation.
-Worklist
-
- Design UML Class Diagram ( User , Student , Tutor , Admin , relationships)
-
- Ensure UML includes attributes and associations (no Activity classes)
-
- Write README.md including:
-
- Project overview and installation instructions
-
-Admin credentials for testing
-
-Team roles and contributions
-
- Record ≤ 5-minute demo video showing registration → login → logout
-
- Verify submission includes: APK, UML PDF, README, and video
-
- Confirm correct file names and GitHub Release version (v0.1)
+### 🔸 Package Structure
