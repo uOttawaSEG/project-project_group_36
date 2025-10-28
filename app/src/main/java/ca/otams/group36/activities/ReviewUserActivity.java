@@ -2,6 +2,7 @@ package ca.otams.group36.activities;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +48,10 @@ public class ReviewUserActivity extends AppCompatActivity {
 
         btnApprove.setOnClickListener(v -> updateStatus("approved"));
         btnReject.setOnClickListener(v -> updateStatus("rejected"));
+        boolean fromRejected = getIntent().getBooleanExtra("fromRejected", false);
+        if (fromRejected) {
+            btnReject.setVisibility(View.GONE);
+        }
     }
 
     private void loadUserInfo() {

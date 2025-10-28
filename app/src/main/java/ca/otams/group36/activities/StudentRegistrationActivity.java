@@ -18,6 +18,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -28,9 +30,12 @@ import ca.otams.group36.R;
 
 public class StudentRegistrationActivity extends AppCompatActivity {
 
-    private EditText etEmail, etPassword, etConfirmPassword, etFirstName, etLastName, etPhone;
     private Button btnRegister;
     private FirebaseFirestore db;
+    private TextInputLayout tilEmail, tilPassword, tilConfirmPassword, tilFirstName, tilLastName, tilPhone;
+    private TextInputEditText etEmail, etPassword, etConfirmPassword, etFirstName, etLastName, etPhone;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +61,22 @@ public class StudentRegistrationActivity extends AppCompatActivity {
         etPhone = findViewById(R.id.etPhone);
         btnRegister = findViewById(R.id.btnRegister);
 
-        btnRegister.setOnClickListener(view -> handleRegister());
+        tilEmail = findViewById(R.id.tilEmail);
+        tilPassword = findViewById(R.id.tilPassword);
+        tilConfirmPassword = findViewById(R.id.tilConfirmPassword);
+        tilFirstName = findViewById(R.id.tilFirstName);
+        tilLastName = findViewById(R.id.tilLastName);
+        tilPhone = findViewById(R.id.tilPhone);
+
+        findViewById(R.id.btnRegister).setOnClickListener(v -> {
+            if (!validateStudentForm()) {
+                Toast.makeText(this, getString(R.string.please_fix_errors), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 通过校验 -> 继续创建账号 / 写库
+            handleRegister();
+        });
+
     }
 
     private void handleRegister() {
@@ -66,18 +86,6 @@ public class StudentRegistrationActivity extends AppCompatActivity {
         String firstName = etFirstName.getText().toString().trim();
         String lastName = etLastName.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
-
-        // Validation
-        if (email.isEmpty() || pwd.isEmpty() || confirm.isEmpty() ||
-                firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!pwd.equals(confirm)) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         // Generate custom UID (manual system)
         String uid = String.format("%08d", new java.util.Random().nextInt(100000000));
@@ -111,5 +119,51 @@ public class StudentRegistrationActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean validateStudentForm() {
+        clearErrors(tilEmail, tilPassword, tilConfirmPassword, tilFirstName, tilLastName, tilPhone);
+
+        boolean ok = true;
+
+        String email = safe( etEmail);
+        String pwd = safe( etPassword);
+        String pwd2 = safe( etConfirmPassword);
+        String first = safe( etFirstName);
+        String last = safe( etLastName);
+        String phone = safe( etPhone); // 可选
+
+        // 必填：Email/Password/Confirm/First/Last
+        if (email.isEmpty()) { tilEmail.setError(getString(R.string.err_required)); ok = false; }
+        if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            tilEmail.setError(getString(R.string.err_invalid_email)); ok = false;
+        }
+        if (pwd.isEmpty()) { tilPassword.setError(getString(R.string.err_required)); ok = false; }
+        if (!pwd.isEmpty() && pwd.length() < 8) { // 也可换成 6：用 err_password_min6
+            tilPassword.setError(getString(R.string.err_password_short)); ok = false;
+        }
+        if (pwd2.isEmpty()) { tilConfirmPassword.setError(getString(R.string.err_required)); ok = false; }
+        if (!pwd.isEmpty() && !pwd2.isEmpty() && !pwd.equals(pwd2)) {
+            tilConfirmPassword.setError(getString(R.string.err_password_mismatch)); ok = false;
+        }
+        if (first.isEmpty()) { tilFirstName.setError(getString(R.string.err_required)); ok = false; }
+        if (last.isEmpty()) { tilLastName.setError(getString(R.string.err_required)); ok = false; }
+
+        // Phone（可选）：若填写则做格式检查
+        if (!phone.isEmpty()) {
+            // 宽松校验：可带 + - () 空格，长度>=7
+            if (!phone.matches("^\\+?[0-9\\-() ]{7,}$")) {
+                tilPhone.setError(getString(R.string.err_invalid_phone)); ok = false;
+            }
+        }
+
+        return ok;
+    }
+
+    private void clearErrors(TextInputLayout... tills) {
+        for (TextInputLayout t : tills) t.setError(null);
+    }
+    private String safe(TextInputEditText et) {
+        return et.getText() == null ? "" : et.getText().toString().trim();
     }
 }

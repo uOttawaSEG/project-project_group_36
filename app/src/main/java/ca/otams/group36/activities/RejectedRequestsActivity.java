@@ -20,6 +20,8 @@ import ca.otams.group36.R;
 import ca.otams.group36.adapters.UsersAdapter;
 import ca.otams.group36.models.User;
 
+import android.content.Intent;
+
 public class RejectedRequestsActivity extends AppCompatActivity {
 
     RecyclerView recycler;
@@ -43,7 +45,12 @@ public class RejectedRequestsActivity extends AppCompatActivity {
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
         // When a rejected user is clicked → prompt deletion
-        adapter = new UsersAdapter(users, user -> showDeleteDialog(user));
+        adapter = new UsersAdapter(users, user -> {
+            Intent intent = new Intent(this, ReviewUserActivity.class);
+            intent.putExtra("userId", user.getEmail());
+            intent.putExtra("fromRejected", true); // 用于隐藏“拒绝”按钮
+            startActivity(intent);
+        });
         recycler.setAdapter(adapter);
     }
 
