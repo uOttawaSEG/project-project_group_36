@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="session_filters">
+        <item>Pending</item>
+        <item>Approved</item>
+        <item>Past</item>
+    </string-array>
+</resources>

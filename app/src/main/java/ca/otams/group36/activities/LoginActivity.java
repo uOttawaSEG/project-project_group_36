@@ -4,7 +4,7 @@
  * University of Ottawa
  *
  * Description:
- * Handles user login using Firestore (custom user collection).
+ * Handles user login and role-based navigation for Admin, Tutor, and Student.
  */
 
 package ca.otams.group36.activities;
@@ -75,28 +75,30 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Authenticate user via Firestore document query.
+     * Authenticate user and handle role-based navigation
      */
     private void authenticateUser(String email, String password) {
+
+        // Admin account
         if (email.equals(Admin.getUsername()) && Admin.authenticate(email, password)) {
+            Toast.makeText(this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, AdminHomeActivity.class);
             startActivity(intent);
             finish();
             return;
         }
 
+        // Student or Tutor
         db.collection("users")
                 .whereEqualTo("email", email)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-
                     if (querySnapshot.isEmpty()) {
                         Toast.makeText(this, "No account found for this email.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-
                         String storedPassword = doc.getString("password");
                         String status = doc.getString("status");
                         String role = doc.getString("role");
@@ -107,18 +109,12 @@ public class LoginActivity extends AppCompatActivity {
                             return;
                         }
 
+                        if (status == null) status = "pending";
+                        if (role == null) role = "Student";
+
                         switch (status) {
-
                             case "approved":
-                                Toast.makeText(this,
-                                        "Welcome " + firstName + " (" + role + ")",
-                                        Toast.LENGTH_LONG).show();
-
-                                Intent intent = new Intent(this, WelcomeActivity.class);
-                                intent.putExtra("name", firstName);
-                                intent.putExtra("role", role);
-                                startActivity(intent);
-                                finish();
+                                handleApprovedUser(role, firstName, email);
                                 break;
 
                             case "pending":
@@ -140,19 +136,49 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     /**
-     * 🔙 Handles the top-left return arrow in toolbar
+     * Redirect approved users to their respective dashboards.
+     */
+    private void handleApprovedUser(String role, String firstName, String email) {
+        Toast.makeText(this, "Welcome " + firstName + " (" + role + ")", Toast.LENGTH_LONG).show();
+
+        Intent intent;
+
+        switch (role.toLowerCase()) {
+            case "tutor":
+                intent = new Intent(this, TutorDashboardActivity.class);
+                intent.putExtra("email", email);
+                intent.putExtra("name", firstName);
+                break;
+
+            case "student":
+                intent = new Intent(this, WelcomeActivity.class);
+                intent.putExtra("email", email);
+                intent.putExtra("name", firstName);
+                break;
+
+            default:
+                intent = new Intent(this, WelcomeActivity.class);
+                intent.putExtra("email", email);
+                intent.putExtra("name", firstName);
+                break;
+        }
+
+        startActivity(intent);
+        finish();
+    }
+
+
+    /**
+     * 🔙 Toolbar back button
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Return to previous screen
             onBackPressed();
             return true;
         }

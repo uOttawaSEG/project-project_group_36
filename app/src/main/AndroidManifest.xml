@@ -18,6 +18,22 @@
         <activity android:name=".activities.ReviewUserActivity" />
 
         <activity
+            android:name=".activities.TutorDashboardActivity"
+            android:exported="true"
+            android:theme="@style/Theme.OTAMS" />
+        <activity android:name=".activities.TutorCreateSlotActivity" />
+        <activity android:name=".activities.TutorSlotsActivity" />
+        <activity android:name=".activities.TutorRequestsActivity" />
+        <activity android:name=".activities.TutorSessionsActivity" />
+
+        <activity android:name=".activities.StudentRegistrationActivity" />
+        <activity android:name=".activities.WelcomeActivity" />
+        <activity android:name=".activities.RoleChooseActivity" />
+
+        <activity
+            android:name=".activities.LoginActivity"
+            android:theme="@style/Theme.OTAMS" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.OTAMS">
@@ -27,15 +43,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.StudentRegistrationActivity" />
-        <activity android:name=".activities.WelcomeActivity" />
-        <activity android:name=".activities.RoleChooseActivity" />
-        <activity
-            android:name=".activities.TutorRegistrationActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
-
     </application>
-
 
 </manifest>
