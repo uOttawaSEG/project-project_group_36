@@ -5,8 +5,9 @@
  *
  * Model class representing a tutoring session between a Student and a Tutor.
  */
-
 package ca.otams.group36.models;
+
+import com.google.firebase.Timestamp; // ← added
 
 public class Session {
 
@@ -24,6 +25,9 @@ public class Session {
     private String endTime;
     private String status;         // "pending", "approved", "rejected", "cancelled"
 
+    // ← added: canonical start time for time-based queries (Upcoming/Past)
+    private Timestamp startAt;
+
     public Session() {}
 
     public Session(String slotId, String tutorEmail, String tutorName,
@@ -39,6 +43,7 @@ public class Session {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
+        // NOTE: startAt is set via setter to keep changes minimal.
     }
 
     // Getters & Setters
@@ -74,6 +79,10 @@ public class Session {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    // ← added
+    public Timestamp getStartAt() { return startAt; }
+    public void setStartAt(Timestamp startAt) { this.startAt = startAt; }
 
     @Override
     public String toString() {

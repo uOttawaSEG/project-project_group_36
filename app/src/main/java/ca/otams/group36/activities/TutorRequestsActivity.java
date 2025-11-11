@@ -9,10 +9,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import ca.otams.group36.R;
 import ca.otams.group36.adapters.SessionsAdapter;
@@ -32,7 +36,9 @@ public class TutorRequestsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tutor_requests);
 
         setSupportActionBar(findViewById(R.id.toolbar));
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         tutorEmail = getIntent().getStringExtra("email");
 
@@ -57,8 +63,10 @@ public class TutorRequestsActivity extends AppCompatActivity {
                     requests.clear();
                     for (DocumentSnapshot d : q.getDocuments()) {
                         Session s = d.toObject(Session.class);
-                        s.setId(d.getId());
-                        requests.add(s);
+                        if (s != null) {
+                            s.setId(d.getId());
+                            requests.add(s);
+                        }
                     }
                     adapter.notifyDataSetChanged();
                 });
@@ -77,12 +85,39 @@ public class TutorRequestsActivity extends AppCompatActivity {
                 return;
         }
 
+        // Build minimal update map
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", newStatus);
+        // Ensure startAt exists so time-based queries (Upcoming/Past) work
+        if (s.getStartAt() == null && s.getDate() != null && s.getStartTime() != null) {
+            updates.put("startAt", toTimestamp(s.getDate(), s.getStartTime()));
+        }
+        // Optional but useful for auditing/sorting
+        updates.put("updatedAt", FieldValue.serverTimestamp());
+
         db.collection("sessions").document(s.getId())
-                .update("status", newStatus)
+                .update(updates)
                 .addOnSuccessListener(x -> {
                     Toast.makeText(this, "Session " + newStatus, Toast.LENGTH_SHORT).show();
                     loadPending();
-                });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+    }
+
+    // Helper: build a Timestamp from "yyyy-MM-dd" and "HH:mm"
+    private static Timestamp toTimestamp(String ymd, String hhmm) {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        String[] d = ymd.split("-");
+        String[] t = hhmm.split(":");
+        c.set(java.util.Calendar.YEAR, Integer.parseInt(d[0]));
+        c.set(java.util.Calendar.MONTH, Integer.parseInt(d[1]) - 1);
+        c.set(java.util.Calendar.DAY_OF_MONTH, Integer.parseInt(d[2]));
+        c.set(java.util.Calendar.HOUR_OF_DAY, Integer.parseInt(t[0]));
+        c.set(java.util.Calendar.MINUTE, Integer.parseInt(t[1]));
+        c.set(java.util.Calendar.SECOND, 0);
+        c.set(java.util.Calendar.MILLISECOND, 0);
+        return new Timestamp(new java.util.Date(c.getTimeInMillis()));
     }
 
     @Override
