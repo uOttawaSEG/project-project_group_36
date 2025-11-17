@@ -75,4 +75,6 @@
     <string name="err_password_min6">Password must be at least 6 characters</string>
     <string name="log_out">Log Out</string>
 
+    <string name="no_sessions">No sessions</string>
+
 </resources>

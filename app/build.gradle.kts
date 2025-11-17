@@ -40,6 +40,7 @@ android {
     buildFeatures {
         compose = false
     }
+
 }
 
 dependencies {
@@ -53,8 +54,19 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.ext.junit)
+    implementation(libs.espresso.core)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+
+    // 单元测试
+    testImplementation("junit:junit:4.13.2")
+
+    // 仪器测试（JUnit4 + Espresso + runner + rules）
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
 }
