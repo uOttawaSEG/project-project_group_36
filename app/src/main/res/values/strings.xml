@@ -77,4 +77,11 @@
 
     <string name="no_sessions">No sessions</string>
 
+    <!-- Tutor Sessions filters -->
+    <string-array name="tutor_session_filters">
+        <item>Upcoming Sessions</item>
+        <item>Past Sessions</item>
+    </string-array>
+
+
 </resources>
