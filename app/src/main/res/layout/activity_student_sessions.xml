@@ -1,42 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
+    android:background="@color/white"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".activities.StudentSessionsActivity">
 
-    <!-- Top app bar -->
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="My Sessions"
-        app:titleTextColor="@android:color/white" />
+        android:background="@color/uottawa_red"
+        android:title="My Sessions"
+        android:titleTextColor="@color/white"
+        android:elevation="4dp" />
 
     <!-- Filter -->
     <Spinner
         android:id="@+id/spinnerFilter"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:minHeight="48dp"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp" />
+        android:padding="12dp"
+        android:layout_margin="16dp"
+        android:background="@android:color/transparent" />
 
-    <!-- Empty state -->
+    <!-- Empty Text -->
     <TextView
         android:id="@+id/txtEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/no_sessions"
-        android:gravity="center"
-        android:padding="24dp"
+        android:text="No sessions found."
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:padding="16dp"
         android:visibility="gone" />
 
-    <!-- List -->
+    <!-- Recycler -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSessions"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:padding="8dp" />
+
 </LinearLayout>

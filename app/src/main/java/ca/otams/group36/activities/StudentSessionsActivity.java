@@ -1,10 +1,12 @@
 package ca.otams.group36.activities;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -31,7 +35,7 @@ import ca.otams.group36.models.Session;
 
 public class StudentSessionsActivity extends AppCompatActivity {
 
-    enum Filter {UPCOMING, PENDING, PAST}
+    public enum Filter {UPCOMING, PENDING, PAST}
 
     private RecyclerView recycler;
     private TextView txtEmpty;
@@ -40,12 +44,14 @@ public class StudentSessionsActivity extends AppCompatActivity {
     private SessionsAdapter adapter;
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private String studentEmail; // fill from intent/session manager
+    private String studentEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_sessions);
+
+//        ca.otams.group36.activities.InitTutorRatingFields.runOnce();
 
         setSupportActionBar(findViewById(R.id.toolbar));
         if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -55,15 +61,6 @@ public class StudentSessionsActivity extends AppCompatActivity {
         recycler = findViewById(R.id.recyclerSessions);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         txtEmpty = findViewById(R.id.txtEmpty);
-
-        // Adapter with action handler: cancel or rate (rate action just toast here)
-        adapter = new SessionsAdapter(sessions, (s, action) -> {
-            if ("cancel".equals(action)) cancelSession(s);
-            else if ("rate".equals(action)) {
-                Toast.makeText(this, "Open rating dialog (TBD)", Toast.LENGTH_SHORT).show();
-            }
-        });
-        recycler.setAdapter(adapter);
 
         spinner = findViewById(R.id.spinnerFilter);
         ArrayAdapter<CharSequence> sp = ArrayAdapter.createFromResource(
@@ -80,15 +77,14 @@ public class StudentSessionsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        spinner.setSelection(0); // default to Upcoming
+        spinner.setSelection(0);
     }
 
     private void loadSessions(Filter filter) {
@@ -105,7 +101,7 @@ public class StudentSessionsActivity extends AppCompatActivity {
         switch (filter) {
             case PENDING:
                 q = base.whereEqualTo("status", "pending")
-                        .orderBy("requestedAt", Query.Direction.DESCENDING); // optional if exists
+                        .orderBy("requestedAt", Query.Direction.DESCENDING);
                 break;
             case UPCOMING:
                 q = base.whereEqualTo("status", "approved")
@@ -121,6 +117,7 @@ public class StudentSessionsActivity extends AppCompatActivity {
 
         q.get().addOnSuccessListener(snap -> {
             sessions.clear();
+
             for (DocumentSnapshot d : snap.getDocuments()) {
                 Session s = d.toObject(Session.class);
                 if (s != null) {
@@ -128,19 +125,33 @@ public class StudentSessionsActivity extends AppCompatActivity {
                     sessions.add(s);
                 }
             }
-            // Fallback local sort/filter if your index still building
+
+            // local filtering fallback logic
             if (filter == Filter.UPCOMING) {
                 sessions.removeIf(s -> s.getStartAt() == null || s.getStartAt().compareTo(now) < 0);
                 sessions.sort(Comparator.comparing(Session::getStartAt));
             } else if (filter == Filter.PAST) {
                 sessions.removeIf(s -> s.getStartAt() == null || s.getStartAt().compareTo(now) >= 0);
                 sessions.sort((a, b) -> b.getStartAt().compareTo(a.getStartAt()));
+                checkRatingsForPastSessions();
             }
 
-            adapter.notifyDataSetChanged();
+            adapter = new SessionsAdapter(
+                    sessions,
+                    filter,
+                    (s, action) -> {
+                        if ("cancel".equals(action)) {
+                            cancelSession(s);
+                        } else if ("rate".equals(action)) {
+                            openRatingDialog(s);
+                        }
+                    }
+            );
+
+            recycler.setAdapter(adapter);
             txtEmpty.setVisibility(sessions.isEmpty() ? View.VISIBLE : View.GONE);
+
         }).addOnFailureListener(e -> {
-            // Index not ready fallback: simple fetch then local filter
             if (e.getMessage() != null && e.getMessage().contains("FAILED_PRECONDITION")) {
                 simpleFetchAndLocalFilter(filter);
             } else {
@@ -149,13 +160,12 @@ public class StudentSessionsActivity extends AppCompatActivity {
         });
     }
 
-    // Fallback that does not require composite index
     private void simpleFetchAndLocalFilter(Filter filter) {
         Timestamp now = Timestamp.now();
         db.collection("sessions")
                 .whereEqualTo("studentEmail", studentEmail)
                 .whereIn("status", filter == Filter.PENDING
-                        ? Arrays.asList("pending")
+                        ? Arrays.asList("pending","rejected")
                         : Arrays.asList("approved"))
                 .get()
                 .addOnSuccessListener(snap -> {
@@ -174,12 +184,10 @@ public class StudentSessionsActivity extends AppCompatActivity {
                         sessions.removeIf(s -> s.getStartAt() == null || s.getStartAt().compareTo(now) >= 0);
                         sessions.sort((a, b) -> b.getStartAt().compareTo(a.getStartAt()));
                     }
-                    adapter.notifyDataSetChanged();
                     txtEmpty.setVisibility(sessions.isEmpty() ? View.VISIBLE : View.GONE);
                 });
     }
 
-    // Cancel rules: pending always allowed; approved allowed only if >= 24h
     private void cancelSession(Session s) {
         if ("pending".equals(s.getStatus())) {
             updateStatus(s.getId(), "canceled");
@@ -195,8 +203,117 @@ public class StudentSessionsActivity extends AppCompatActivity {
             return;
         }
         updateStatus(s.getId(), "canceled");
-        // Optional: also mark related slot as unbooked if you keep that flag
-        // db.collection("availability").document(s.getSlotId()).update("booked", false);
+    }
+
+    private void checkRatingsForPastSessions() {
+        for (Session s : sessions) {
+            db.collection("ratings")
+                    .whereEqualTo("sessionId", s.getId())
+                    .whereEqualTo("studentEmail", studentEmail)
+                    .get()
+                    .addOnSuccessListener(q -> {
+                        s.setRated(!q.isEmpty());
+                        if (adapter != null) adapter.notifyDataSetChanged();
+                    });
+        }
+    }
+
+    private void openRatingDialog(Session session) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_rate, null);
+        builder.setView(view);
+
+        ImageView[] stars = {
+                view.findViewById(R.id.star1),
+                view.findViewById(R.id.star2),
+                view.findViewById(R.id.star3),
+                view.findViewById(R.id.star4),
+                view.findViewById(R.id.star5)
+        };
+
+        final int[] rating = {0};
+
+        for (int i = 0; i < stars.length; i++) {
+            int index = i;
+            stars[i].setOnClickListener(v -> {
+                rating[0] = index + 1;
+                updateStarUI(stars, rating[0]);
+            });
+        }
+
+        builder.setPositiveButton("Submit", (dialog, which) -> {
+            if (rating[0] == 0) {
+                Toast.makeText(this, "Please select a rating.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            submitRating(session, rating[0]);
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        builder.show();
+    }
+
+    private void updateStarUI(ImageView[] stars, int rating) {
+        for (int i = 0; i < stars.length; i++) {
+            stars[i].setImageResource(i < rating ? R.drawable.star_filled : R.drawable.star_empty);
+        }
+    }
+
+    private void submitRating(Session session, int stars) {
+
+        String tutorEmail = session.getTutorEmail();
+        String sessionId = session.getId();
+
+        db.collection("ratings")
+                .whereEqualTo("sessionId", sessionId)
+                .whereEqualTo("studentEmail", studentEmail)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (!qs.isEmpty()) {
+                        Toast.makeText(this, "You already rated this session.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("sessionId", sessionId);
+                    data.put("tutorEmail", tutorEmail);
+                    data.put("studentEmail", studentEmail);
+                    data.put("rating", stars);
+                    data.put("timestamp", FieldValue.serverTimestamp());
+
+                    db.collection("ratings")
+                            .add(data)
+                            .addOnSuccessListener(doc -> {
+                                updateTutorRating(tutorEmail, stars);
+                                Toast.makeText(this, "Thanks for your rating!", Toast.LENGTH_SHORT).show();
+                            });
+                });
+    }
+
+    private void updateTutorRating(String tutorEmail, int stars) {
+
+        DocumentReference ref = db.collection("users").document(tutorEmail);
+
+        db.runTransaction(transaction -> {
+
+            DocumentSnapshot doc = transaction.get(ref);
+
+            long sum = doc.contains("ratingSum") ? doc.getLong("ratingSum") : 0;
+            long count = doc.contains("ratingCount") ? doc.getLong("ratingCount") : 0;
+
+            sum += stars;
+            count++;
+
+            Map<String, Object> update = new HashMap<>();
+            update.put("ratingSum", sum);
+            update.put("ratingCount", count);
+
+            transaction.update(ref, update);
+
+            return null;
+        });
     }
 
     private void updateStatus(String sessionId, String newStatus) {
