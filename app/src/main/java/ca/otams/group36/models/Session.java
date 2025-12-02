@@ -7,14 +7,13 @@
  */
 package ca.otams.group36.models;
 
-import com.google.firebase.Timestamp; // ← added
+import com.google.firebase.Timestamp;
 
 public class Session {
 
-    // Firestore auto-generated document ID (used locally)
     private String id;
 
-    private String slotId;         // Reference to Availability document
+    private String slotId;
     private String tutorEmail;
     private String tutorName;
     private String studentEmail;
@@ -23,30 +22,22 @@ public class Session {
     private String date;
     private String startTime;
     private String endTime;
-    private String status;         // "pending", "approved", "rejected", "cancelled"
+    private String status;   // pending, approved, rejected, cancelled
 
-    // ← added: canonical start time for time-based queries (Upcoming/Past)
     private Timestamp startAt;
+    private Timestamp endAt;
+
+    // --- Metadata ---
+    private Timestamp requestedAt;
+    private Timestamp approvedAt;
+
+    private int startMinutes;
+    private int endMinutes;
 
     public Session() {}
 
-    public Session(String slotId, String tutorEmail, String tutorName,
-                   String studentEmail, String studentName, String subject,
-                   String date, String startTime, String endTime, String status) {
-        this.slotId = slotId;
-        this.tutorEmail = tutorEmail;
-        this.tutorName = tutorName;
-        this.studentEmail = studentEmail;
-        this.studentName = studentName;
-        this.subject = subject;
-        this.date = date;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.status = status;
-        // NOTE: startAt is set via setter to keep changes minimal.
-    }
+    // --- getter / setter ---
 
-    // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -80,12 +71,28 @@ public class Session {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    // ← added
     public Timestamp getStartAt() { return startAt; }
     public void setStartAt(Timestamp startAt) { this.startAt = startAt; }
+
+    public Timestamp getEndAt() { return endAt; }
+    public void setEndAt(Timestamp endAt) { this.endAt = endAt; }
+
+    public Timestamp getRequestedAt() { return requestedAt; }
+    public void setRequestedAt(Timestamp requestedAt) { this.requestedAt = requestedAt; }
+
+    public Timestamp getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(Timestamp approvedAt) { this.approvedAt = approvedAt; }
+
+    public int getStartMinutes() { return startMinutes; }
+    public void setStartMinutes(int startMinutes) { this.startMinutes = startMinutes; }
+
+    public int getEndMinutes() { return endMinutes; }
+    public void setEndMinutes(int endMinutes) { this.endMinutes = endMinutes; }
+    public void setRated(boolean b) {}
 
     @Override
     public String toString() {
         return subject + " (" + date + " " + startTime + "-" + endTime + ") [" + status + "]";
     }
+
 }

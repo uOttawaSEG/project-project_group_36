@@ -22,6 +22,10 @@ public class User {
     protected String role;
     protected String status; // "pending", "approved", "rejected"
 
+    Long ratingSum;
+    Long ratingCount;
+
+
     public User() {}
 
     public User(String firstName, String lastName, String email,
