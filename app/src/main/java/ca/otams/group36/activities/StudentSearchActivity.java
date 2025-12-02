@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,9 +17,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +40,12 @@ public class StudentSearchActivity extends AppCompatActivity {
     private ProgressBar progress;
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private String studentEmail; // from intent/session
-    private String studentName;  // optional for writing into session
 
-    // Minimal in-memory list of slots
+    private String studentEmail;
+    private String studentName;
+
     private final List<Map<String, Object>> slots = new ArrayList<>();
-    private SlotsAdapter adapter; // a tiny adapter defined below
+    private SlotsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +56,7 @@ public class StudentSearchActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         studentEmail = getIntent().getStringExtra("email");
-        studentName = getIntent().getStringExtra("name");
+        studentName  = getIntent().getStringExtra("name");
 
         editCourse = findViewById(R.id.editCourseCode);
         btnSearch = findViewById(R.id.btnSearch);
@@ -65,24 +72,27 @@ public class StudentSearchActivity extends AppCompatActivity {
 
     private void doSearch() {
         String code = editCourse.getText().toString().trim().toUpperCase();
+
         if (TextUtils.isEmpty(code)) {
             Toast.makeText(this, "Enter course code", Toast.LENGTH_SHORT).show();
             return;
         }
+
         progress.setVisibility(View.VISIBLE);
+
         Timestamp now = Timestamp.now();
 
         db.collection("availability")
-                .whereEqualTo("courseCode", code)
-                .whereEqualTo("booked", false)
-                .whereGreaterThanOrEqualTo("startAt", now)
-                .orderBy("startAt") // ASC default
+                .whereGreaterThanOrEqualTo("courseCode", code)
+                .whereLessThanOrEqualTo("courseCode", code + '\uf8ff')
+                .whereGreaterThan("startAt", now)
+                .orderBy("courseCode")
+                .orderBy("startAt")
                 .get()
                 .addOnSuccessListener(qs -> {
                     slots.clear();
                     for (DocumentSnapshot d : qs.getDocuments()) {
                         Map<String, Object> m = new HashMap<>(d.getData());
-                        if (m == null) continue;
                         m.put("id", d.getId());
                         slots.add(m);
                     }
@@ -95,29 +105,41 @@ public class StudentSearchActivity extends AppCompatActivity {
                 });
     }
 
-    // Click handler: do local conflict check then create a pending session
     private void requestBooking(Map<String, Object> slot) {
+
         if (studentEmail == null || studentEmail.isEmpty()) {
             Toast.makeText(this, "Missing student email", Toast.LENGTH_SHORT).show();
             return;
         }
-        int startMin = ((Long) slot.get("startMinutes")).intValue();
-        int endMin = ((Long) slot.get("endMinutes")).intValue();
-        String tutorEmail = (String) slot.get("tutorEmail");
-        String date = (String) slot.get("date");
-        String startTime = (String) slot.get("startTime");
-        String endTime = (String) slot.get("endTime");
-        Timestamp startAt = (Timestamp) slot.get("startAt");
-        String course = (String) slot.get("courseCode");
-        String slotId = (String) slot.get("id");
 
-        // Local conflict check with student's pending/approved sessions
+        int startMin = safeInt(slot.get("startMinutes"));
+        int endMin   = safeInt(slot.get("endMinutes"));
+
+        String tutorEmail = (String) slot.get("tutorEmail");
+        String tutorName  = (String) slot.get("tutorName");
+        String date       = (String) slot.get("date");
+        String startTime  = (String) slot.get("startTime");
+        String endTime    = (String) slot.get("endTime");
+        String slotId     = (String) slot.get("id");
+        String course     = (String) slot.get("courseCode");
+
+        Timestamp startAt = (Timestamp) slot.get("startAt");
+        Timestamp endAt   = (Timestamp) slot.get("endAt");
+
+
         db.collection("sessions")
                 .whereEqualTo("studentEmail", studentEmail)
-                .whereIn("status", java.util.Arrays.asList("pending", "approved"))
+                .whereIn("status", Arrays.asList("pending", "approved"))
                 .get()
                 .addOnSuccessListener(qs -> {
+
                     for (DocumentSnapshot d : qs.getDocuments()) {
+
+                        String existingDate = d.getString("date");
+                        if (existingDate == null || !existingDate.equals(date)) {
+                            continue;
+                        }
+
                         Integer os = safeInt(d.get("startMinutes"));
                         Integer oe = safeInt(d.get("endMinutes"));
                         if (os != null && oe != null) {
@@ -128,34 +150,52 @@ public class StudentSearchActivity extends AppCompatActivity {
                             }
                         }
                     }
-                    // No conflict → create session (pending) and optionally auto-approve
+
+
+
                     Map<String, Object> data = new HashMap<>();
                     data.put("slotId", slotId);
                     data.put("tutorEmail", tutorEmail);
+                    data.put("tutorName", tutorName);
+
                     data.put("studentEmail", studentEmail);
                     data.put("studentName", studentName);
+
                     data.put("subject", course);
+
                     data.put("date", date);
                     data.put("startTime", startTime);
                     data.put("endTime", endTime);
+
                     data.put("startAt", startAt);
+                    data.put("endAt", endAt);
+
                     data.put("startMinutes", startMin);
                     data.put("endMinutes", endMin);
-                    data.put("status", ((Boolean) slot.get("autoApprove")) ? "approved" : "pending");
-                    data.put("requestedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
-                    db.collection("sessions").add(data).addOnSuccessListener(ref -> {
-                        // If auto-approve, you may also mark slot as booked=true
-                        if (Boolean.TRUE.equals(slot.get("autoApprove"))) {
-                            db.collection("availability").document(slotId).update("booked", true);
-                        }
-                        Toast.makeText(this, "Request sent", Toast.LENGTH_SHORT).show();
-                        // Remove from current list
-                        slots.remove(slot);
-                        adapter.notifyDataSetChanged();
-                    }).addOnFailureListener(e ->
-                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show()
-                    );
+                    boolean auto = Boolean.TRUE.equals(slot.get("autoApprove"));
+                    data.put("status", auto ? "approved" : "pending");
+                    data.put("requestedAt", FieldValue.serverTimestamp());
+
+                    db.collection("sessions")
+                            .add(data)
+                            .addOnSuccessListener(ref -> {
+
+                                db.collection("availability")
+                                        .document(slotId)
+                                        .update("booked", true);
+
+                                if (auto) {
+                                    db.collection("sessions")
+                                            .document(ref.getId())
+                                            .update("approvedAt", FieldValue.serverTimestamp());
+                                }
+
+                                Toast.makeText(this, "Request sent", Toast.LENGTH_SHORT).show();
+
+                                slots.remove(slot);
+                                adapter.notifyDataSetChanged();
+                            });
                 });
     }
 
@@ -174,11 +214,10 @@ public class StudentSearchActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // ----- Minimal inline adapter for slots list -----
+
     private static class SlotsAdapter extends RecyclerView.Adapter<SlotVH> {
-        interface OnRequest {
-            void onRequest(Map<String, Object> slot);
-        }
+
+        interface OnRequest { void onRequest(Map<String, Object> slot); }
 
         private final List<Map<String, Object>> data;
         private final OnRequest onRequest;
@@ -191,35 +230,69 @@ public class StudentSearchActivity extends AppCompatActivity {
         @NonNull
         @Override
         public SlotVH onCreateViewHolder(@NonNull android.view.ViewGroup p, int vType) {
-            android.view.View v = android.view.LayoutInflater.from(p.getContext())
+            View v = android.view.LayoutInflater.from(p.getContext())
                     .inflate(R.layout.item_slot_search, p, false);
             return new SlotVH(v);
         }
 
         @Override
         public void onBindViewHolder(@NonNull SlotVH h, int pos) {
+
             Map<String, Object> m = data.get(pos);
+            String slotId = (String) m.get("id");
+
             String title = (String) m.get("courseCode");
-            String tutor = (String) m.get("tutorEmail");
             String date = (String) m.get("date");
             String start = (String) m.get("startTime");
             String end = (String) m.get("endTime");
+            String tutorName = (String) m.get("tutorName");
+
             h.txtTitle.setText(title + "  •  " + date + " " + start + "-" + end);
-            h.txtSub.setText("Tutor: " + tutor + "   Avg: (fetch users/{tutor})");
+            h.txtSub.setText("Tutor: " + tutorName);
+
+            h.btnRequest.setEnabled(true);
+            h.btnRequest.setText("Request");
+
+            FirebaseFirestore.getInstance()
+                    .collection("sessions")
+                    .whereEqualTo("slotId", slotId)
+                    .whereIn("status", Arrays.asList("pending", "approved"))
+                    .get()
+                    .addOnSuccessListener(qs -> {
+
+                        if (qs.isEmpty()) {
+                            h.btnRequest.setEnabled(true);
+                            h.btnRequest.setText("Request");
+                            return;
+                        }
+
+                        String status = qs.getDocuments().get(0).getString("status");
+
+                        if ("approved".equals(status)) {
+                            h.itemView.setVisibility(View.GONE);
+                            h.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                            return;
+                        }
+
+                        else {
+                            h.btnRequest.setEnabled(false);
+                            h.btnRequest.setText("Pending Approval");
+                        }
+                    });
+
             h.btnRequest.setOnClickListener(v -> onRequest.onRequest(m));
         }
 
+
         @Override
-        public int getItemCount() {
-            return data.size();
-        }
+        public int getItemCount() { return data.size(); }
     }
 
     private static class SlotVH extends RecyclerView.ViewHolder {
         TextView txtTitle, txtSub;
-        android.widget.Button btnRequest;
+        Button btnRequest;
 
-        SlotVH(@NonNull android.view.View itemView) {
+        SlotVH(@NonNull View itemView) {
             super(itemView);
             txtTitle = itemView.findViewById(R.id.txtTitle);
             txtSub = itemView.findViewById(R.id.txtSub);
