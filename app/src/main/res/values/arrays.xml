@@ -1,16 +1,6 @@
 <resources>
-
-    <!-- TutorSessionsActivity using-->
     <string-array name="session_filters">
         <item>Upcoming</item>
         <item>Past</item>
     </string-array>
-
-    <!-- StudentSessionsActivity using -->
-    <string-array name="student_session_filters">
-        <item>Upcoming</item>
-        <item>Pending</item>
-        <item>Past</item>
-    </string-array>
-
 </resources>

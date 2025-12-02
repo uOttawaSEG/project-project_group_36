@@ -12,7 +12,6 @@ package ca.otams.group36.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Patterns;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
@@ -66,34 +65,11 @@ public class LoginActivity extends AppCompatActivity {
             String email = editEmail.getText().toString().trim();
             String password = editPassword.getText().toString().trim();
 
-            // --- Email validation ---
-            if (email.isEmpty()) {
-                textLoginTitle.setText("Email is invalid");
-                Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show();
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                textLoginTitle.setText("Email is invalid");
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // --- Password validation ---
-            if (password.isEmpty()) {
-                textLoginTitle.setText("Password is invalid");
-                Toast.makeText(this, "Please enter your password", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // 也可以根据需要加长度校验
-            if (password.length() < 6) {
-                textLoginTitle.setText("Password is invalid");
-                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // All basic checks passed – authenticate with Firestore / Admin
             authenticateUser(email, password);
         });
     }
@@ -118,10 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (querySnapshot.isEmpty()) {
-                        textLoginTitle.setText("Email is invalid");
-                        Toast.makeText(this,
-                                "No account found for this email.",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "No account found for this email.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -132,10 +105,7 @@ public class LoginActivity extends AppCompatActivity {
                         String firstName = doc.getString("firstName");
 
                         if (storedPassword == null || !storedPassword.equals(password)) {
-                            textLoginTitle.setText("Password is invalid");
-                            Toast.makeText(this,
-                                    "Incorrect password",
-                                    Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
                             return;
                         }
 
@@ -166,13 +136,8 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this,
-                            "Error: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
-                    // 保持与密码错误时一致的提示（可选）
-                    textLoginTitle.setText("Password is invalid");
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     /**
@@ -207,8 +172,9 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
+
     /**
-     * Toolbar back button
+     * 🔙 Toolbar back button
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -43,10 +43,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.StudentSessionsActivity" />
-        <activity android:name=".activities.StudentSearchActivity" />
-
-
     </application>
 
 </manifest>
