@@ -26,7 +26,7 @@ import ca.otams.group36.R;
 
 public class TutorCreateSlotActivity extends AppCompatActivity {
 
-    private EditText editDate, editStart, editEnd;
+    private EditText editCourse, editDate, editStart, editEnd;
     private Switch switchAuto;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String tutorEmail;
@@ -37,7 +37,7 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutor_create_slot);
 
-        // --- Toolbar ---
+        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -45,21 +45,20 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Create Slot");
         }
 
-        // Tutor identity passed from previous screen
         tutorEmail = getIntent().getStringExtra("email");
 
-        editDate = findViewById(R.id.editDate);
-        editStart = findViewById(R.id.editStart);
-        editEnd = findViewById(R.id.editEnd);
+        editCourse = findViewById(R.id.editCourse);
+        editDate   = findViewById(R.id.editDate);
+        editStart  = findViewById(R.id.editStart);
+        editEnd    = findViewById(R.id.editEnd);
         switchAuto = findViewById(R.id.switchAuto);
 
         editDate.setFocusable(false);
-        editDate.setOnClickListener(v -> showDatePicker());
-
         editStart.setFocusable(false);
-        editStart.setOnClickListener(v -> showTimePicker(editStart));
-
         editEnd.setFocusable(false);
+
+        editDate.setOnClickListener(v -> showDatePicker());
+        editStart.setOnClickListener(v -> showTimePicker(editStart));
         editEnd.setOnClickListener(v -> showTimePicker(editEnd));
 
         findViewById(R.id.btnSaveSlot).setOnClickListener(v -> saveSlot());
@@ -78,7 +77,6 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
                 today.get(Calendar.MONTH),
                 today.get(Calendar.DAY_OF_MONTH)
         );
-        // Disallow past dates
         dialog.getDatePicker().setMinDate(today.getTimeInMillis());
         dialog.show();
     }
@@ -91,7 +89,6 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
         TimePickerDialog dialog = new TimePickerDialog(
                 this,
                 (view, selectedHour, selectedMinute) -> {
-                    // Round minutes to 0 or 30; if >=45, roll to next hour
                     int roundedMinute = (selectedMinute < 15) ? 0 : (selectedMinute < 45 ? 30 : 0);
                     if (selectedMinute >= 45 && selectedHour < 23) selectedHour++;
                     target.setText(String.format(Locale.getDefault(), "%02d:%02d", selectedHour, roundedMinute));
@@ -103,19 +100,15 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // --- Helpers -------------------------------------------------------------
-
-    /** Convert "HH:mm" into total minutes since 00:00 (e.g., "09:30" -> 570). */
     private static int toMinutes(@NonNull String hhmm) {
         String[] p = hhmm.split(":");
         return Integer.parseInt(p[0]) * 60 + Integer.parseInt(p[1]);
     }
 
-    /** Build a Firestore Timestamp from "yyyy-MM-dd" (date) and "HH:mm" (time). */
     private static Timestamp toTimestamp(@NonNull String ymd, @NonNull String hhmm) {
         Calendar cal = Calendar.getInstance();
-        String[] d = ymd.split("-");   // 2025-11-10
-        String[] t = hhmm.split(":");  // 09:30
+        String[] d = ymd.split("-");
+        String[] t = hhmm.split(":");
         cal.set(Calendar.YEAR, Integer.parseInt(d[0]));
         cal.set(Calendar.MONTH, Integer.parseInt(d[1]) - 1);
         cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(d[2]));
@@ -126,83 +119,84 @@ public class TutorCreateSlotActivity extends AppCompatActivity {
         return new Timestamp(new java.util.Date(cal.getTimeInMillis()));
     }
 
-    // --- Save with validation & overlap check -------------------------------
-
     private void saveSlot() {
-        String date = editDate.getText().toString().trim();   // "yyyy-MM-dd"
-        String start = editStart.getText().toString().trim(); // "HH:mm"
-        String end   = editEnd.getText().toString().trim();   // "HH:mm"
+        String courseCode = editCourse.getText().toString().trim().toUpperCase();
+        String date  = editDate.getText().toString().trim();
+        String start = editStart.getText().toString().trim();
+        String end   = editEnd.getText().toString().trim();
         boolean autoApprove = switchAuto.isChecked();
 
-        // Basic validation
-        if (date.isEmpty()) { editDate.setError("Date is required"); return; }
-        if (start.isEmpty()) { editStart.setError("Start time is required"); return; }
-        if (end.isEmpty())   { editEnd.setError("End time is required"); return; }
-        if (tutorEmail == null || tutorEmail.isEmpty()) {
-            Toast.makeText(this, "Missing tutor email", Toast.LENGTH_LONG).show();
+        // Validation
+        if (courseCode.isEmpty()) {
+            editCourse.setError("Course is required");
+            return;
+        }
+        if (date.isEmpty()) {
+            editDate.setError("Date is required");
+            return;
+        }
+        if (start.isEmpty()) {
+            editStart.setError("Start time required");
+            return;
+        }
+        if (end.isEmpty()) {
+            editEnd.setError("End time required");
             return;
         }
 
         int startMin = toMinutes(start);
-        int endMin   = toMinutes(end);
+        int endMin = toMinutes(end);
         if (endMin <= startMin) {
-            editEnd.setError("End time must be after start time");
+            editEnd.setError("End time must be later");
             return;
         }
 
-        // Must be in the future (client-side guard)
         Timestamp startAt = toTimestamp(date, start);
         if (startAt.compareTo(Timestamp.now()) <= 0) {
-            editStart.setError("Start time must be in the future");
+            editStart.setError("Must be in the future");
             return;
         }
 
-        // Overlap check: same tutor + same date
-        db.collection("availability")
-                .whereEqualTo("tutorEmail", tutorEmail)
-                .whereEqualTo("date", date)
+        db.collection("users")
+                .whereEqualTo("email", tutorEmail)
+                .limit(1)
                 .get()
-                .addOnSuccessListener(snap -> {
-                    for (var doc : snap.getDocuments()) {
-                        int oStart = doc.contains("startMinutes")
-                                ? doc.getLong("startMinutes").intValue()
-                                : toMinutes(String.valueOf(doc.get("startTime")));
-                        int oEnd   = doc.contains("endMinutes")
-                                ? doc.getLong("endMinutes").intValue()
-                                : toMinutes(String.valueOf(doc.get("endTime")));
+                .addOnSuccessListener(userSnap -> {
 
-                        // Overlap if: newStart < oldEnd && oldStart < newEnd
-                        if (startMin < oEnd && oStart < endMin) {
-                            editStart.setError("Overlaps with an existing slot");
-                            editEnd.setError("Overlaps with an existing slot");
-                            return; // Do not proceed to save
-                        }
+                    String tutorName = "";
+
+                    if (!userSnap.isEmpty()) {
+                        var user = userSnap.getDocuments().get(0);
+                        String fn = user.getString("firstName");
+                        String ln = user.getString("lastName");
+                        tutorName = ((fn == null ? "" : fn) + " " + (ln == null ? "" : ln)).trim();
                     }
 
-                    // No overlap -> save with helper fields for future queries
                     Map<String, Object> data = new HashMap<>();
                     data.put("tutorEmail", tutorEmail);
+                    data.put("tutorName", tutorName);
+                    data.put("courseCode", courseCode);
                     data.put("date", date);
                     data.put("startTime", start);
                     data.put("endTime", end);
                     data.put("autoApprove", autoApprove);
-                    // helper fields
                     data.put("startMinutes", startMin);
                     data.put("endMinutes", endMin);
                     data.put("startAt", startAt);
+                    data.put("booked", false);
                     data.put("createdAt", FieldValue.serverTimestamp());
 
                     db.collection("availability")
                             .add(data)
-                            .addOnSuccessListener(doc -> {
-                                Toast.makeText(this, "Slot saved successfully!", Toast.LENGTH_SHORT).show();
+                            .addOnSuccessListener(d -> {
+                                Toast.makeText(this, "Slot saved!", Toast.LENGTH_SHORT).show();
                                 finish();
                             })
                             .addOnFailureListener(e ->
-                                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                });
+
+
     }
 
     @Override

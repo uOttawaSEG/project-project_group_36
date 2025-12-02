@@ -1,24 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
+    android:background="@color/white"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.TutorSessionsActivity">
 
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/uottawa_red"
-        android:titleTextColor="@color/white" />
+        android:title="My Sessions"
+        android:titleTextColor="@color/white"
+        android:elevation="4dp" />
 
+    <!-- Filter -->
     <Spinner
         android:id="@+id/spinnerFilter"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:layout_margin="8dp" />
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:layout_margin="16dp"
+        android:background="@android:color/transparent" />
 
+    <!-- Empty Text -->
     <TextView
         android:id="@+id/txtEmptySessions"
         android:layout_width="match_parent"
@@ -30,9 +38,12 @@
         android:padding="16dp"
         android:visibility="gone" />
 
+    <!-- Recycler -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSessions"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
 
 </LinearLayout>

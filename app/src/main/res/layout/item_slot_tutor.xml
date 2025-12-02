@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@android:color/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="1dp">
+
+    <TextView
+        android:id="@+id/txtDateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2025-05-01 • 9:00 - 9:30"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/txtCourse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CSI2510 (Auto-Approve)"
+        android:textColor="@color/uottawa_red"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"/>
+
+    <Button
+        android:id="@+id/btnDeleteSlot"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Delete"
+        android:textAllCaps="false"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/uottawa_red"
+        android:textColor="@android:color/white"/>
+
+</LinearLayout>

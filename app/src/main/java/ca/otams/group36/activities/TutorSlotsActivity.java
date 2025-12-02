@@ -72,21 +72,67 @@ public class TutorSlotsActivity extends AppCompatActivity {
                 .setTitle("Delete Slot")
                 .setMessage("Are you sure you want to delete this slot?\n" +
                         slot.getDate() + " " + slot.getStartTime() + "-" + slot.getEndTime())
-                .setPositiveButton("Delete", (dialog, which) -> deleteSlot(slot))
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    checkBeforeDelete(slot);
+                })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    private void deleteSlot(Availability slot) {
+
+    private void checkBeforeDelete(Availability slot) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("availability").document(slot.getId())
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "Slot no longer exists.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Boolean booked = doc.getBoolean("booked");
+                    if (Boolean.TRUE.equals(booked)) {
+                        Toast.makeText(this,
+                                "This slot is already booked and cannot be deleted.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    db.collection("sessions")
+                            .whereEqualTo("slotId", slot.getId())
+                            .whereIn("status", java.util.Arrays.asList("pending", "approved"))
+                            .get()
+                            .addOnSuccessListener(qs -> {
+
+                                if (!qs.isEmpty()) {
+                                    Toast.makeText(this,
+                                            "A session is pending/approved for this slot.\nCannot delete.",
+                                            Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+
+                                // 3. 安全删除
+                                actuallyDeleteSlot(slot);
+                            });
+                });
+    }
+
+
+
+    private void actuallyDeleteSlot(Availability slot) {
         db.collection("availability").document(slot.getId())
                 .delete()
                 .addOnSuccessListener(x -> {
-                    Toast.makeText(this, "Slot deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Slot deleted.", Toast.LENGTH_SHORT).show();
                     loadSlots();
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

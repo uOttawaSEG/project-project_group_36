@@ -10,14 +10,42 @@
     android:gravity="center_horizontal"
     tools:context=".activities.TutorDashboardActivity">
 
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#990033"
-        android:title="Tutor Dashboard"
-        android:titleTextColor="#FFFFFF"
-        android:elevation="4dp" />
+        android:background="@color/uottawa_red"
+        android:elevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/txtTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tutor Dashboard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <TextView
+        android:id="@+id/txtRating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⭐ 0.00 (0 reviews)"
+        android:textSize="16sp"
+        android:textColor="@color/uottawa_red"
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/txtTutorDashboardTitle"
@@ -60,5 +88,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogout"
+        style="@style/OttawaButtonDanger"
+        android:text="Logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"/>
 
 </LinearLayout>

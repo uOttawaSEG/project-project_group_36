@@ -82,7 +82,6 @@ public class TutorRegistrationActivity extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.please_fix_errors), Toast.LENGTH_SHORT).show();
                 return;
             }
-            // 通过校验 -> 继续创建账号 / 写库
             handleRegister();
         });
     }
@@ -111,6 +110,9 @@ public class TutorRegistrationActivity extends AppCompatActivity {
         user.put("bio", bio);
         user.put("status", "pending");
         user.put("role", "Tutor");
+        user.put("ratingSum", 0L);
+        user.put("ratingCount", 0L);
+
 
         db.collection("users").document(uid)
                 .set(user)

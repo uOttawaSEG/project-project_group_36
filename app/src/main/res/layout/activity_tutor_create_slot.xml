@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:padding="24dp">
 
-        <!--  Toolbar -->
+        <!-- Toolbar -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -22,22 +22,39 @@
             android:titleTextColor="@color/white"
             android:elevation="4dp" />
 
+        <!-- Course -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Course Code"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
+        <EditText
+            android:id="@+id/editCourse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ABC1234 (eg.MAT1320)"
+            android:inputType="text"
+            android:background="@drawable/input_box"
+            android:padding="10dp"/>
+
         <!-- Date -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Select Date"
             android:textStyle="bold"
-            android:layout_marginTop="24dp" />
+            android:layout_marginTop="24dp"/>
 
         <EditText
             android:id="@+id/editDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="YYYY-MM-DD"
-            android:inputType="date"
             android:background="@drawable/input_box"
-            android:padding="10dp" />
+            android:padding="10dp"
+            android:focusable="false"/>
 
         <!-- Start Time -->
         <TextView
@@ -45,16 +62,16 @@
             android:layout_height="wrap_content"
             android:text="Start Time"
             android:textStyle="bold"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"/>
 
         <EditText
             android:id="@+id/editStart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="HH:MM"
-            android:inputType="time"
             android:background="@drawable/input_box"
-            android:padding="10dp" />
+            android:padding="10dp"
+            android:focusable="false"/>
 
         <!-- End Time -->
         <TextView
@@ -62,16 +79,16 @@
             android:layout_height="wrap_content"
             android:text="End Time"
             android:textStyle="bold"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"/>
 
         <EditText
             android:id="@+id/editEnd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="HH:MM"
-            android:inputType="time"
             android:background="@drawable/input_box"
-            android:padding="10dp" />
+            android:padding="10dp"
+            android:focusable="false"/>
 
         <!-- Auto approve switch -->
         <LinearLayout
@@ -86,22 +103,22 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="Auto approve sessions"
-                android:textSize="16sp" />
+                android:textSize="16sp"/>
 
             <Switch
                 android:id="@+id/switchAuto"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- Submit button -->
+        <!-- Submit -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveSlot"
             style="@style/OttawaButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Slot"
-            android:layout_marginTop="32dp" />
+            android:layout_marginTop="32dp"/>
 
     </LinearLayout>
 </ScrollView>
