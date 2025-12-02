@@ -25,10 +25,14 @@
         <activity android:name=".activities.TutorSlotsActivity" />
         <activity android:name=".activities.TutorRequestsActivity" />
         <activity android:name=".activities.TutorSessionsActivity" />
+        <activity android:name=".activities.TutorRegistrationActivity" />
 
         <activity android:name=".activities.StudentRegistrationActivity" />
-        <activity android:name=".activities.WelcomeActivity" />
         <activity android:name=".activities.RoleChooseActivity" />
+        <activity android:name=".activities.StudentDashboardActivity" />
+        <activity android:name=".activities.StudentSessionsActivity" />
+        <activity android:name=".activities.StudentSearchActivity" />
+
 
         <activity
             android:name=".activities.LoginActivity"
@@ -42,10 +46,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".activities.StudentSessionsActivity" />
-        <activity android:name=".activities.StudentSearchActivity" />
-
 
     </application>
 
