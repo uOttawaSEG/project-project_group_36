@@ -48,7 +48,7 @@ public class RejectedRequestsActivity extends AppCompatActivity {
         adapter = new UsersAdapter(users, user -> {
             Intent intent = new Intent(this, ReviewUserActivity.class);
             intent.putExtra("userId", user.getEmail());
-            intent.putExtra("fromRejected", true); // 用于隐藏“拒绝”按钮
+            intent.putExtra("fromRejected", true);
             startActivity(intent);
         });
         recycler.setAdapter(adapter);
