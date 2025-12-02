@@ -170,7 +170,6 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(this,
                             "Error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
-                    // 保持与密码错误时一致的提示（可选）
                     textLoginTitle.setText("Password is invalid");
                 });
     }
@@ -191,13 +190,13 @@ public class LoginActivity extends AppCompatActivity {
                 break;
 
             case "student":
-                intent = new Intent(this, WelcomeActivity.class);
+                intent = new Intent(this, StudentDashboardActivity.class);
                 intent.putExtra("email", email);
                 intent.putExtra("name", firstName);
                 break;
 
             default:
-                intent = new Intent(this, WelcomeActivity.class);
+                intent = new Intent(this, StudentDashboardActivity.class);
                 intent.putExtra("email", email);
                 intent.putExtra("name", firstName);
                 break;
