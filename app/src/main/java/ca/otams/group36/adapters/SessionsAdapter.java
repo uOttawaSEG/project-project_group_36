@@ -9,69 +9,103 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
 import ca.otams.group36.R;
+import ca.otams.group36.activities.StudentSessionsActivity;
 import ca.otams.group36.models.Session;
 
-public class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
+public class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.VH> {
 
-    private ArrayList<Session> sessions;
-    private OnSessionActionListener listener;
+    public interface OnAction {
+        void onAction(Session s, String action);
+    }
 
-    public SessionsAdapter(ArrayList<Session> sessions, OnSessionActionListener listener) {
-        this.sessions = sessions;
-        this.listener = listener;
+    private final ArrayList<Session> data;
+    private final StudentSessionsActivity.Filter filter;
+    private final OnAction handler;
+
+    private boolean rated;
+
+
+    public boolean isRated() { return rated; }
+    public void setRated(boolean rated) { this.rated = rated; }
+
+    public SessionsAdapter(ArrayList<Session> data,
+                           StudentSessionsActivity.Filter filter,
+                           OnAction handler) {
+        this.data = data;
+        this.filter = filter;
+        this.handler = handler;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_session_request, parent, false);
-        return new ViewHolder(v);
+                .inflate(R.layout.item_student_session, parent, false);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Session s = sessions.get(position);
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        Session s = data.get(position);
 
-        holder.txtSubject.setText("Subject: " + s.getSubject());
-        holder.txtTime.setText(s.getDate() + "  " + s.getStartTime() + " - " + s.getEndTime());
-        holder.txtStudent.setText("Student: " + s.getStudentName());
-        holder.txtStatus.setText("Status: " + s.getStatus());
+        String header = s.getSubject() + " • " + s.getDate() + " "
+                + s.getStartTime() + "-" + s.getEndTime();
+        h.txtTitle.setText(header);
 
-        // 只有 Pending 状态才显示按钮
-        boolean isPending = "pending".equalsIgnoreCase(s.getStatus());
-        holder.btnApprove.setVisibility(isPending ? View.VISIBLE : View.GONE);
-        holder.btnReject.setVisibility(isPending ? View.VISIBLE : View.GONE);
+        h.txtStatus.setText("Status: " + s.getStatus());
 
-        holder.btnApprove.setOnClickListener(v -> listener.onAction(s, "approve"));
-        holder.btnReject.setOnClickListener(v -> listener.onAction(s, "reject"));
+        h.btnCancel.setVisibility(View.GONE);
+        h.btnRate.setVisibility(View.GONE);
+
+        if (filter == StudentSessionsActivity.Filter.UPCOMING) {
+            h.btnCancel.setVisibility(View.VISIBLE);
+            h.btnCancel.setOnClickListener(v -> handler.onAction(s, "cancel"));
+        }
+        else if (filter == StudentSessionsActivity.Filter.PENDING) {
+            h.btnCancel.setVisibility(View.VISIBLE);
+            h.btnCancel.setOnClickListener(v -> handler.onAction(s, "cancel"));
+        }
+        else if (filter == StudentSessionsActivity.Filter.PAST) {
+            String sessionId = s.getId();
+            String studentEmail = s.getStudentEmail();
+
+            FirebaseFirestore.getInstance()
+                    .collection("ratings")
+                    .whereEqualTo("sessionId", sessionId)
+                    .whereEqualTo("studentEmail", studentEmail)
+                    .get()
+                    .addOnSuccessListener(qs -> {
+                        if (qs.isEmpty()) {
+                            h.btnRate.setVisibility(View.VISIBLE);
+                            h.btnRate.setOnClickListener(v -> handler.onAction(s, "rate"));
+                        } else {
+                            h.btnRate.setVisibility(View.GONE);
+                        }
+                    });
+        }
+
     }
 
     @Override
     public int getItemCount() {
-        return sessions.size();
+        return data.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView txtSubject, txtTime, txtStudent, txtStatus;
-        MaterialButton btnApprove, btnReject;
+    static class VH extends RecyclerView.ViewHolder {
+        TextView txtTitle, txtStatus;
+        MaterialButton btnCancel, btnRate;
 
-        ViewHolder(@NonNull View itemView) {
+        VH(@NonNull View itemView) {
             super(itemView);
-            txtSubject = itemView.findViewById(R.id.txtSubject);
-            txtTime = itemView.findViewById(R.id.txtTime);
-            txtStudent = itemView.findViewById(R.id.txtStudent);
+            txtTitle = itemView.findViewById(R.id.txtTitle);
             txtStatus = itemView.findViewById(R.id.txtStatus);
-            btnApprove = itemView.findViewById(R.id.btnApprove);
-            btnReject = itemView.findViewById(R.id.btnReject);
+            btnCancel = itemView.findViewById(R.id.btnCancel);
+            btnRate = itemView.findViewById(R.id.btnRate);
         }
-    }
-
-    public interface OnSessionActionListener {
-        void onAction(Session session, String action);
     }
 }
